@@ -1,6 +1,7 @@
 package com.gilfort.zauberei;
 
 import com.gilfort.zauberei.creativetab.ZaubereiCreativeModeTabs;
+import com.gilfort.zauberei.item.ArmorEffects;
 import com.gilfort.zauberei.item.ZaubereiItems;
 import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
@@ -66,7 +67,7 @@ public class Zauberei
         ZaubereiItems.register(modEventBus);
 
         ZaubereiCreativeModeTabs.register(modEventBus);
-//        ArmorEffects.register(modEventBus);
+        ArmorEffects.register(modEventBus);
 
 
         // Register ourselves for server and other game events we are interested in.
@@ -98,7 +99,6 @@ public class Zauberei
     {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
-//        loadArmorEffects(event.getServer().getResourceManager());
     }
 
     @SubscribeEvent

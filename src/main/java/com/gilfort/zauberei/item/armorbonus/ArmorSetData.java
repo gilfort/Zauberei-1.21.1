@@ -14,11 +14,6 @@ public class ArmorSetData {
         this.parts = parts;
     }
 
-    public PartData getPartData(int partCount){
-        String key = partCount + "Part";
-        return parts.get(key);
-    }
-
     //Inner class for Effects and Attributes for each Equipment Part
     public static class PartData {
         // Gson wird diese Felder per Namen matchen:

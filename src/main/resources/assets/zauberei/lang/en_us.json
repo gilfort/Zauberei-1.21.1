@@ -1,0 +1,13 @@
+{
+  "itemGroup.zauberei": "Example Mod Tab",
+  "block.zauberei.example_block": "Example Block",
+  "item.zauberei.example_item": "Example Item",
+
+
+  /*
+    * Added tooltips for items
+    * formatting codes: https://minecraft.wiki/w/Formatting_codes
+    */
+  "tooltipp.zauberei.wand": "Zauberstab, der deine §9Wünsche§r wahrwerden lässt!"
+
+}

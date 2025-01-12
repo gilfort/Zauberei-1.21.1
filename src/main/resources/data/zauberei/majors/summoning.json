@@ -1,0 +1,103 @@
+{
+  "Levels": {
+    "1": {
+      "iron": {
+        "1": {
+          "Effects": [
+            {
+              "Effect": "speed", "Amplifier": "0"
+            }
+          ],
+          "Attributes": {
+            "minecraft:max_health": 1
+          }
+        },
+        "2": {
+          "Effects": [
+            {
+              "Effect": "speed", "Amplifier": "0"
+            },
+            {
+              "Effect": "haste", "Amplifier": "0"
+            }
+          ],
+          "Attributes": {
+            "minecraft:max_health": 4
+          }
+        },
+        "3": {
+          "Effects": [
+            {
+              "Effect": "speed",
+              "Amplifier": "0"
+            },
+            {
+              "Effect": "haste",
+              "Amplifier": "0"
+            },
+            {
+              "Effect": "jump_boost",
+              "Amplifier": "0"
+            }
+          ],
+          "Attributes": {
+            "minecraft:max_health": 8
+          }
+        },
+        "4": {
+          "Effects": [
+            {"Effect": "speed", "Amplifier": "0"},
+            {"Effect": "haste", "Amplifier": "0"},
+            {"Effect": "jump_boost", "Amplifier": "0"},
+            {"Effect": "regeneration", "Amplifier": "0"}
+          ],
+          "Attributes": {
+            "minecraft:max_health": 12
+          }
+        }
+      },
+      "diamond": {
+        "1": {
+          "Effects": [
+            {
+              "Effect": "strength", "Amplifier": "0"
+            }
+          ],
+          "Attributes": {
+            "minecraft:armor": 1
+          }
+        },
+        "2": {
+          "Effects": [
+            {"Effect": "strength", "Amplifier": "0"},
+            {"Effect": "resistance", "Amplifier": "0"}
+          ],
+          "Attributes": {
+            "minecraft:armor": 2
+          }
+        },
+        "3": {
+          "Effects": [
+            {"Effect": "strength", "Amplifier": "0"},
+            {"Effect": "resistance", "Amplifier": "0"},
+            {"Effect": "speed", "Amplifier": "0"}
+          ],
+          "Attributes": {
+            "minecraft:armor": 3
+          }
+        },
+        "4": {
+          "Effects": [
+            {"Effect": "strength", "Amplifier": "0"},
+            {"Effect": "resistance", "Amplifier": "0"},
+            {"Effect": "speed", "Amplifier": "0"},
+            {"Effect": "jump_boost", "Amplifier": "0"}
+            ],
+          "Attributes": {
+            "minecraft:armor": 4
+          }
+        }
+      }
+    }
+  }
+}

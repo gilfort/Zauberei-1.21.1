@@ -20,7 +20,7 @@ public class ZaubereiReloadListener extends SimpleJsonResourceReloadListener {
     // New Gson instance
     private static final Gson GSON = new Gson();
 
-    private final Map<String, ArmorSetData> armorSetDataMap = new HashMap<>();
+//    private final Map<String, ArmorSetData> armorSetDataMap = new HashMap<>();
 
     // Konstruktor: Übergebe Pfad, ab dem gesucht werden soll, hier "materials"
     public ZaubereiReloadListener() {
@@ -73,21 +73,9 @@ public class ZaubereiReloadListener extends SimpleJsonResourceReloadListener {
 
             Zauberei.LOGGER.info("Parsed major={}, year={}, armor={}", major, year, armorMaterial);
 
-            String key = makeKey(major, year, armorMaterial);
-
-            armorSetDataMap.put(key, data);
-
-            Zauberei.LOGGER.info("Reload done, map size: {}", armorSetDataMap.size());
+            ArmorSetDataRegistry.put(major, year, armorMaterial, data);
         }
 
     }
 
-    private String makeKey(String major, int year, String armorMaterial) {
-        return major + ":" + year + ":" + armorMaterial;
-    }
-
-    public ArmorSetData getArmorSetData(String major, int year, String armorMaterial) {
-        String key = makeKey(major, year, armorMaterial);
-        return armorSetDataMap.get(key);
-    }
 }

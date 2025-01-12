@@ -1,74 +1,76 @@
 {
-  "1Part": {
-    "Effects": [
-      {
-        "Effect": "speed",
-        "Amplifier": 0
+  "parts": {
+    "1Part": {
+      "Effects": [
+        {
+          "Effect": "speed",
+          "Amplifier": 0
+        }
+      ],
+      "Attributes": {
+        "minecraft:max_health": 1,
+        "minecraft:armor": 1
       }
-    ],
-    "Attributes": {
-      "minecraft:max_health": 1,
-      "minecraft:armor": 1
-    }
-  },
-  "2Part": {
-    "Effects": [
-      {
-        "Effect": "speed",
-        "Amplifier": 0
-      },
-      {
-        "Effect": "haste",
-        "Amplifier": 0
+    },
+    "2Part": {
+      "Effects": [
+        {
+          "Effect": "speed",
+          "Amplifier": 0
+        },
+        {
+          "Effect": "haste",
+          "Amplifier": 0
+        }
+      ],
+      "Attributes": {
+        "minecraft:max_health": 1,
+        "minecraft:armor": 1
       }
-    ],
-    "Attributes": {
-      "minecraft:max_health": 1,
-      "minecraft:armor": 1
-    }
-  },
-  "3Part": {
-    "Effects": [
-      {
-        "Effect": "speed",
-        "Amplifier": 0
-      },
-      {
-        "Effect": "haste",
-        "Amplifier": 0
-      },
-      {
-        "Effect": "jump_boost",
-        "Amplifier": 0
+    },
+    "3Part": {
+      "Effects": [
+        {
+          "Effect": "speed",
+          "Amplifier": 0
+        },
+        {
+          "Effect": "haste",
+          "Amplifier": 0
+        },
+        {
+          "Effect": "jump_boost",
+          "Amplifier": 0
+        }
+      ],
+      "Attributes": {
+        "minecraft:max_health": 1,
+        "minecraft:armor": 1
       }
-    ],
-    "Attributes": {
-      "minecraft:max_health": 1,
-      "minecraft:armor": 1
-    }
-  },
-  "4Part": {
-    "Effects": [
-      {
-        "Effect": "speed",
-        "Amplifier": 0
-      },
-      {
-        "Effect": "haste",
-        "Amplifier": 0
-      },
-      {
-        "Effect": "jump_boost",
-        "Amplifier": 0
-      },
-      {
-        "Effect": "regeneration",
-        "Amplifier": 0
+    },
+    "4Part": {
+      "Effects": [
+        {
+          "Effect": "speed",
+          "Amplifier": 0
+        },
+        {
+          "Effect": "haste",
+          "Amplifier": 0
+        },
+        {
+          "Effect": "jump_boost",
+          "Amplifier": 0
+        },
+        {
+          "Effect": "regeneration",
+          "Amplifier": 0
+        }
+      ],
+      "Attributes": {
+        "minecraft:max_health": 1,
+        "minecraft:armor": 1
       }
-    ],
-    "Attributes": {
-      "minecraft:max_health": 1,
-      "minecraft:armor": 1
     }
   }
 }

@@ -1,6 +1,7 @@
 package com.gilfort.zauberei.command;
 
 import com.gilfort.zauberei.helpers.PlayerDataHelper;
+import com.gilfort.zauberei.item.armorbonus.ArmorSetDataRegistry;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -35,7 +36,32 @@ public class CommandHandler {
                         .then(Commands.literal("checkyeartag")
                                 .then(Commands.argument("player", StringArgumentType.word())
                                         .executes(CommandHandler::checkYearTagCommand)))
-        );
+                        .then(Commands.literal("test_sets")
+                                .then(Commands.argument("major", StringArgumentType.word())
+                                        .then(Commands.argument("year", IntegerArgumentType.integer())
+                                                .then(Commands.argument("armorMaterial", StringArgumentType.word())
+                                                        .executes(CommandHandler::testSetsCommand))))));
+    }
+
+    private  static int testSetsCommand(CommandContext<CommandSourceStack> context){
+        String major = StringArgumentType.getString(context, "major");
+        int year = IntegerArgumentType.getInteger(context, "year");
+        String armorMaterial = StringArgumentType.getString(context, "armorMaterial");
+        CommandSourceStack source = context.getSource();
+
+        if (!(source.getEntity() instanceof ServerPlayer player)) {
+            source.sendFailure(Component.literal("Dieser Befehl kann nur von einem Spieler ausgeführt werden."));
+            return Command.SINGLE_SUCCESS;
+        }
+
+        if (!VALID_MAJORS.contains(major)) {
+            source.sendFailure(Component.literal("Ungültiger Major-Typ. Gültige Optionen: " + VALID_MAJORS));
+            return Command.SINGLE_SUCCESS;
+        }
+
+        ArmorSetDataRegistry.debugPrintData(major, year, armorMaterial);
+
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int setMajorCommand(CommandContext<CommandSourceStack> context) {

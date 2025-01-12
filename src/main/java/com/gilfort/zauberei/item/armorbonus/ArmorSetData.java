@@ -19,7 +19,7 @@ public class ArmorSetData {
         return parts.get(key);
     }
 
-    //Inner class for Effects and Attributes for each Eqipment Part
+    //Inner class for Effects and Attributes for each Equipment Part
     public static class PartData {
         // Gson wird diese Felder per Namen matchen:
         private List<EffectData> Effects;

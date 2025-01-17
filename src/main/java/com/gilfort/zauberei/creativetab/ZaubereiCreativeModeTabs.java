@@ -24,6 +24,10 @@ public class ZaubereiCreativeModeTabs {
                         output.accept(ZaubereiItems.MAGICCLOTH);
                         output.accept(ZaubereiItems.BLUE_GEM);
                         output.accept(ZaubereiItems.WAND);
+                        output.accept(ZaubereiItems.MAGICCLOTH_HELMET.get());
+                        output.accept(ZaubereiItems.MAGICCLOTH_CHESTPLATE.get());
+                        output.accept(ZaubereiItems.MAGICCLOTH_LEGGINGS.get());
+                        output.accept(ZaubereiItems.MAGICCLOTH_BOOTS.get());
                     }).build());
 
 

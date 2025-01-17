@@ -17,12 +17,10 @@ public class ZaubereiItemModelProvider extends ItemModelProvider {
         //loop through all Items registered in ZaubereiItems and register them
         ZaubereiItems.ITEMS.getEntries().forEach(item -> basicItem(item.get()));
 
-//        basicItem(ModItems.BISMUTH.get());
-//        basicItem(ModItems.RAW_BISMUTH.get());
-//
-//        basicItem(ModItems.RADISH.get());
-//        basicItem(ModItems.STARLIGHT_ASHES.get());
-//        basicItem(ModItems.FROSTFIRE_ICE.get());
-//        basicItem(ModItems.CHISEL.get());
+        basicItem(ZaubereiItems.MAGICCLOTH_HELMET.get());
+        basicItem(ZaubereiItems.MAGICCLOTH_CHESTPLATE.get());
+        basicItem(ZaubereiItems.MAGICCLOTH_LEGGINGS.get());
+        basicItem(ZaubereiItems.MAGICCLOTH_BOOTS.get());
+
     }
 }

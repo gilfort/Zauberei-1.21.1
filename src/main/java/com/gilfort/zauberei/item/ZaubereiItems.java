@@ -1,8 +1,9 @@
 package com.gilfort.zauberei.item;
 
 import com.gilfort.zauberei.Zauberei;
+import com.gilfort.zauberei.item.armor.MagicclothArmorItem;
 import com.gilfort.zauberei.item.custom.WandItem;
-import net.minecraft.resources.ResourceLocation;
+import com.gilfort.zauberei.util.ItemPropertiesHelper;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
@@ -26,13 +27,17 @@ public class ZaubereiItems {
 
     //setting up armor items
     public static final DeferredHolder<Item, Item> MAGICCLOTH_HELMET = ITEMS.register("magiccloth_helmet",
-            () -> new ZaubereiMagicclothArmorItem(ArmorItem.Type.HELMET));
+            ()-> new MagicclothArmorItem(ArmorItem.Type.HELMET, ItemPropertiesHelper.equipment(1)
+                    .durability(ArmorItem.Type.HELMET.getDurability(26))));
     public static final DeferredHolder<Item, Item> MAGICCLOTH_CHESTPLATE = ITEMS.register("magiccloth_chestplate",
-            () -> new ZaubereiMagicclothArmorItem(ArmorItem.Type.CHESTPLATE));
+            ()-> new MagicclothArmorItem(ArmorItem.Type.CHESTPLATE, ItemPropertiesHelper.equipment(1)
+                    .durability(ArmorItem.Type.CHESTPLATE.getDurability(26))));
     public static final DeferredHolder<Item, Item> MAGICCLOTH_LEGGINGS = ITEMS.register("magiccloth_leggings",
-            () -> new ZaubereiMagicclothArmorItem(ArmorItem.Type.LEGGINGS));
+            ()-> new MagicclothArmorItem(ArmorItem.Type.LEGGINGS, ItemPropertiesHelper.equipment(1)
+                    .durability(ArmorItem.Type.LEGGINGS.getDurability(26))));
     public static final DeferredHolder<Item, Item> MAGICCLOTH_BOOTS = ITEMS.register("magiccloth_boots",
-            () -> new ZaubereiMagicclothArmorItem(ArmorItem.Type.BOOTS));
+            ()-> new MagicclothArmorItem(ArmorItem.Type.BOOTS, ItemPropertiesHelper.equipment(1)
+                    .durability(ArmorItem.Type.BOOTS.getDurability(26))));
 
 
     public static void register(IEventBus eventBus) {

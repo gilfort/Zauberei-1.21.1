@@ -1,10 +1,13 @@
 package com.gilfort.zauberei;
 
 import com.gilfort.zauberei.creativetab.ZaubereiCreativeModeTabs;
-import com.gilfort.zauberei.item.ArmorEffects;
+import com.gilfort.zauberei.item.armor.ArmorEffects;
 import com.gilfort.zauberei.item.ZaubereiItems;
+import com.gilfort.zauberei.item.armor.ZaubereiArmorMaterials;
 import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -68,6 +71,7 @@ public class Zauberei
 
         ZaubereiCreativeModeTabs.register(modEventBus);
         ArmorEffects.register(modEventBus);
+        ZaubereiArmorMaterials.register(modEventBus);
 
 
         // Register ourselves for server and other game events we are interested in.
@@ -99,6 +103,9 @@ public class Zauberei
     {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+    public static ResourceLocation id(@NotNull String path) {
+        return ResourceLocation.fromNamespaceAndPath(Zauberei.MODID, path);
     }
 
     @SubscribeEvent

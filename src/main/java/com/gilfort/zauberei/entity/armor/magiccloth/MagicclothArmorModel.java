@@ -1,6 +1,7 @@
 package com.gilfort.zauberei.entity.armor.magiccloth;
 
 import com.gilfort.zauberei.Zauberei;
+import com.gilfort.zauberei.item.ZaubereiItems;
 import com.gilfort.zauberei.item.armor.MagicclothArmorItem;
 import software.bernie.geckolib.model.GeoModel;
 import net.minecraft.resources.ResourceLocation;
@@ -17,17 +18,29 @@ public class MagicclothArmorModel extends GeoModel<MagicclothArmorItem> {
 
     @Override
     public ResourceLocation getModelResource(MagicclothArmorItem object){
-        return createResourceLocation(Zauberei.MODID, "geo/magiccloth_armor.geo.json");
+        if(object.isAlt()) {
+            return createResourceLocation(Zauberei.MODID, "geo/magiccloth_armor_alt.geo.json");
+        }else {
+            return createResourceLocation(Zauberei.MODID, "geo/magiccloth_armor.geo.json");
+        }
     }
 
     @Override
     public ResourceLocation getTextureResource(MagicclothArmorItem object){
-        return createResourceLocation(Zauberei.MODID, "textures/models/armor/magiccloth.png");
+        if(object.isAlt()) {
+            return createResourceLocation(Zauberei.MODID, "textures/models/armor/magiccloth_alt.png");
+        }else {
+            return createResourceLocation(Zauberei.MODID, "textures/models/armor/magiccloth.png");
+        }
     }
 
     @Override
     public ResourceLocation getAnimationResource(MagicclothArmorItem object){
-        return createResourceLocation(Zauberei.MODID, "animations/magiccloth_armor_animation.json");
+        if(object.isAlt()) {
+            return createResourceLocation(Zauberei.MODID, "animations/magiccloth_armor_animation_alt.json");
+        }else {
+            return createResourceLocation(Zauberei.MODID, "animations/magiccloth_armor_animation.json");
+        }
     }
 
     private ResourceLocation createResourceLocation(String namespace, String path) {

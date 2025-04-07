@@ -3,6 +3,7 @@ package com.gilfort.zauberei.entity.armor;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
@@ -19,6 +20,11 @@ import java.util.ArrayList;
 import java.util.function.Function;
 
 public class GenericCustomArmorRenderer<T extends Item & GeoItem> extends GeoArmorRenderer<T> {
+    @Override
+    public void setupAnim(Entity entity, float v, float v1, float v2, float v3, float v4) {
+
+    }
+
     public class AsyncBone {
         @Nullable
         private GeoBone actualBone;

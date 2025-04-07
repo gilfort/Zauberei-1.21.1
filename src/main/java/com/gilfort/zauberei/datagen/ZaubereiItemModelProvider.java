@@ -22,5 +22,12 @@ public class ZaubereiItemModelProvider extends ItemModelProvider {
         basicItem(ZaubereiItems.MAGICCLOTH_LEGGINGS.get());
         basicItem(ZaubereiItems.MAGICCLOTH_BOOTS.get());
 
+        basicItem(ZaubereiItems.MAGICCLOTH_HELMET_ALT.get());
+        basicItem(ZaubereiItems.MAGICCLOTH_CHESTPLATE_ALT.get());
+        basicItem(ZaubereiItems.MAGICCLOTH_LEGGINGS_ALT.get());
+        basicItem(ZaubereiItems.MAGICCLOTH_BOOTS_ALT.get());
+
+
+
     }
 }

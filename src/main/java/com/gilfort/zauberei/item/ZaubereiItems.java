@@ -2,6 +2,7 @@ package com.gilfort.zauberei.item;
 
 import com.gilfort.zauberei.Zauberei;
 import com.gilfort.zauberei.item.armor.MagicclothArmorItem;
+import com.gilfort.zauberei.item.custom.IntroductionLetter;
 import com.gilfort.zauberei.item.custom.WandItem;
 import com.gilfort.zauberei.util.ItemPropertiesHelper;
 import net.minecraft.world.item.ArmorItem;
@@ -25,6 +26,9 @@ public class ZaubereiItems {
     public static final DeferredItem<Item> WAND = ITEMS.register("wand",
             () -> new WandItem(new Item.Properties()));
 
+    public static final DeferredItem<Item> INTRODUCTIONLETTER = ITEMS.register("introductionletter",
+            () -> new IntroductionLetter(new Item.Properties().stacksTo(1)));
+
     //setting up armor items
     public static final DeferredHolder<Item, Item> MAGICCLOTH_HELMET = ITEMS.register("magiccloth_helmet",
             ()-> new MagicclothArmorItem(ArmorItem.Type.HELMET, ItemPropertiesHelper.equipment(1)
@@ -36,6 +40,20 @@ public class ZaubereiItems {
             ()-> new MagicclothArmorItem(ArmorItem.Type.LEGGINGS, ItemPropertiesHelper.equipment(1)
                     .durability(ArmorItem.Type.LEGGINGS.getDurability(26))));
     public static final DeferredHolder<Item, Item> MAGICCLOTH_BOOTS = ITEMS.register("magiccloth_boots",
+            ()-> new MagicclothArmorItem(ArmorItem.Type.BOOTS, ItemPropertiesHelper.equipment(1)
+                    .durability(ArmorItem.Type.BOOTS.getDurability(26))));
+
+    //Alt-Versions
+    public static final DeferredHolder<Item, Item> MAGICCLOTH_HELMET_ALT = ITEMS.register("magiccloth_helmet_alt",
+            ()-> new MagicclothArmorItem(ArmorItem.Type.HELMET, ItemPropertiesHelper.equipment(1)
+                    .durability(ArmorItem.Type.HELMET.getDurability(26))));
+    public static final DeferredHolder<Item, Item> MAGICCLOTH_CHESTPLATE_ALT = ITEMS.register("magiccloth_chestplate_alt",
+            ()-> new MagicclothArmorItem(ArmorItem.Type.CHESTPLATE, ItemPropertiesHelper.equipment(1)
+                    .durability(ArmorItem.Type.CHESTPLATE.getDurability(26))));
+    public static final DeferredHolder<Item, Item> MAGICCLOTH_LEGGINGS_ALT = ITEMS.register("magiccloth_leggings_alt",
+            ()-> new MagicclothArmorItem(ArmorItem.Type.LEGGINGS, ItemPropertiesHelper.equipment(1)
+                    .durability(ArmorItem.Type.LEGGINGS.getDurability(26))));
+    public static final DeferredHolder<Item, Item> MAGICCLOTH_BOOTS_ALT = ITEMS.register("magiccloth_boots_alt",
             ()-> new MagicclothArmorItem(ArmorItem.Type.BOOTS, ItemPropertiesHelper.equipment(1)
                     .durability(ArmorItem.Type.BOOTS.getDurability(26))));
 

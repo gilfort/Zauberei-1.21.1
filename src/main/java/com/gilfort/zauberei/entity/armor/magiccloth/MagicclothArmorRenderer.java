@@ -1,9 +1,11 @@
 package com.gilfort.zauberei.entity.armor.magiccloth;
 
+import com.gilfort.zauberei.Zauberei;
 import com.gilfort.zauberei.entity.armor.GenericCustomArmorRenderer;
 import com.gilfort.zauberei.item.armor.MagicclothArmorItem;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;

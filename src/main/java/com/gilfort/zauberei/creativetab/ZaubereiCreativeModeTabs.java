@@ -22,8 +22,8 @@ public class ZaubereiCreativeModeTabs {
                     .title(Component.translatable("creativetab.zauberei.zauberei_tab"))
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(ZaubereiItems.MAGICCLOTH);
-                        output.accept(ZaubereiItems.BLUE_GEM);
-                        output.accept(ZaubereiItems.WAND);
+//                        output.accept(ZaubereiItems.BLUE_GEM);
+//                        output.accept(ZaubereiItems.WAND);
                         output.accept(ZaubereiItems.INTRODUCTIONLETTER);
                         output.accept(ZaubereiItems.MAGICCLOTH_HELMET.get());
                         output.accept(ZaubereiItems.MAGICCLOTH_CHESTPLATE.get());

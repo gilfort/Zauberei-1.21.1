@@ -1,21 +1,19 @@
 package com.gilfort.zauberei.guis;
 
+
+import com.gilfort.zauberei.Config;
+import com.gilfort.zauberei.Network.LetterButtonPayload;
 import com.gilfort.zauberei.Zauberei;
-import com.gilfort.zauberei.item.ZaubereiItems;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.chat.*;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -41,18 +39,7 @@ public class LetterGUI extends Screen {
         return "Trainee";
     }
 
-    String invitation = String.format("Dear %s, \n" +
-            "We are pleased to inform you that our potential detection system, \"Oculus,\" has recognized your magical talent.\n" +
-            "It is our honor to invite you to join our school " +
-            "as a scholarship student.\n" +
-            "From today on you are part of the Witchwood Academy. \n" +
-            "To receive your first-year supplies, please tear this letter apart. \n" +
-            "Welcome to a world where magic comes to life. " +
-            "We look forward to guiding you on your journey " +
-            "and helping you master your new skills.\n\n" +
-            "Yours sincerely,\n" +
-            "Professor McDumblesnape\n" +
-            "Headmaster of Witchwood Academy", playername);
+    String invitation = Config.getLetterText(playername);
 
 
     private final ItemStack letterItem;
@@ -73,23 +60,7 @@ public class LetterGUI extends Screen {
                     Button.builder(
                                     Component.literal("RIP LETTER"),
                                     button -> {
-                                        if (minecraft != null && minecraft.player != null) {
-                                            minecraft.player.getInventory().removeItem(letterItem);
-
-                                            ItemStack[] armorPieces = {
-                                                    ZaubereiItems.MAGICCLOTH_HELMET.get().getDefaultInstance(),
-                                                    ZaubereiItems.MAGICCLOTH_CHESTPLATE.get().getDefaultInstance(),
-                                                    ZaubereiItems.MAGICCLOTH_LEGGINGS.get().getDefaultInstance(),
-                                                    ZaubereiItems.MAGICCLOTH_BOOTS.get().getDefaultInstance()
-                                            };
-
-                                            for(ItemStack armor : armorPieces){
-                                                minecraft.player.getInventory().add(armor);
-                                            }
-
-                                            minecraft.player.playSound(SoundEvents.ITEM_PICKUP);
-
-                                        }
+                                        PacketDistributor.sendToServer(new LetterButtonPayload());
                                         minecraft.setScreen(null);
                                     }
                             )
@@ -107,31 +78,13 @@ public class LetterGUI extends Screen {
         public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
             super.render(guiGraphics, mouseX, mouseY, partialTick);
 
+
+//---render Background---
+
             int guiLeft = (this.width - IMAGE_WIDTH) / 2;
             int guiTop = (this.height - IMAGE_HEIGHT) / 2;
 
-            int TextBoxX = guiLeft + 20;
-            int TextBoxY = guiTop + 20;
-            int maxTextWidth = 190;
-            int maxLines = 22;
 
-            List<FormattedCharSequence> wrappedText = this.font.split(Component.literal(invitation), maxTextWidth);
-
-            if(wrappedText.size() > maxLines) {
-                wrappedText = wrappedText.subList(0, maxLines);
-            }
-
-            int lineHeight = this.font.lineHeight;
-            for (int i = 0; i < wrappedText.size(); i++) {
-                guiGraphics.drawString(
-                        this.font,
-                        wrappedText.get(i),
-                        TextBoxX,
-                        TextBoxY + (lineHeight * i),
-                        0x000000,
-                        false
-                );
-            }
 
             guiGraphics.pose().pushPose();
             guiGraphics.pose().translate(0,0,-1);
@@ -149,6 +102,43 @@ public class LetterGUI extends Screen {
             );
 
             guiGraphics.pose().popPose();
+
+    //---render Text---
+            int TextBoxX = guiLeft + 20;
+            int TextBoxY = guiTop + 40;
+            int maxTextWidth = 230;
+            int maxTextHeight = 170;
+
+            List<FormattedCharSequence> wrappedText = this.font.split(Component.literal(invitation), maxTextWidth);
+
+            int lineHeight = this.font.lineHeight;
+            int textHeight = lineHeight * wrappedText.size();
+
+            float scale = 1.0f;
+            if(textHeight > maxTextHeight){
+                scale = (float)maxTextHeight / textHeight;
+            }
+
+            float scaledX = TextBoxX / scale;
+            float scaledY = TextBoxY / scale;
+
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().scale(scale, scale, 1.0f);
+            guiGraphics.pose().translate(scaledX, scaledY, 0);
+
+            for (int i=0; i < wrappedText.size(); i++){
+                guiGraphics.drawString(
+                        this.font,
+                        wrappedText.get(i),
+                        0,
+                        (lineHeight * i),
+                        0x000000,
+                        false
+                );
+            }
+
+            guiGraphics.pose().popPose();
+
 
 
         }

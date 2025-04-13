@@ -1,7 +1,24 @@
 {
-  "itemGroup.zauberei": "Example Mod Tab",
-  "block.zauberei.example_block": "Example Block",
-  "item.zauberei.example_item": "Example Item",
+  //creative tab
+  "creativetab.zauberei.zauberei_tab": "Zauberei",
+
+
+  //items
+    "item.zauberei.magiccloth": "Magiccloth",
+    "item.zauberei.introductionletter": "Introduction Letter",
+
+
+  //armor
+    "item.zauberei.magiccloth_helmet": "Magiccloth Helmet",
+    "item.zauberei.magiccloth_chestplate": "Magiccloth Chestplate",
+    "item.zauberei.magiccloth_leggings": "Magiccloth Leggings",
+    "item.zauberei.magiccloth_boots": "Magiccloth Boots",
+    "item.zauberei.magiccloth_helmet_alt": "Magiccloth Helmet",
+    "item.zauberei.magiccloth_chestplate_alt": "Magiccloth Chestplate",
+    "item.zauberei.magiccloth_leggings_alt": "Magiccloth Leggings",
+    "item.zauberei.magiccloth_boots_alt": "Magiccloth Boots",
+
+  //blocks
 
 
   /*

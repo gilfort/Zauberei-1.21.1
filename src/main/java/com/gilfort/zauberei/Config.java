@@ -25,6 +25,7 @@ public class Config {
 
     public static final ModConfigSpec.ConfigValue<List<? extends String>> LETTER_ITEMS;
     public static final ModConfigSpec.ConfigValue<String> LETTER_TEXT;
+    public static final ModConfigSpec.ConfigValue<Boolean> SPAWN_WITCHWOOD_SCHOOL;
 
     static {
         LETTER_ITEMS = BUILDER
@@ -59,6 +60,10 @@ public class Config {
                      Professor McDumblesnape
                      Headmaster of Witchwood Academy
                      """);
+
+        SPAWN_WITCHWOOD_SCHOOL = BUILDER
+                .comment("\nWhether the Witchwood School should be spawned in the world. (at 0 250 0)\n")
+                .define("spawn_witchwood_school", false);
 
     }
 

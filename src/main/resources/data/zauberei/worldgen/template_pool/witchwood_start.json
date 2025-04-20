@@ -1,0 +1,14 @@
+{
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "zauberei:witchwood_school",
+        "projection": "rigid",
+        "processors": "zauberei:stone_infest"
+      },
+      "weight": 1
+    }
+  ]
+}

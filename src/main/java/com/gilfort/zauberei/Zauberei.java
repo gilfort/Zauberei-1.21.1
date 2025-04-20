@@ -5,6 +5,7 @@ import com.gilfort.zauberei.item.armor.ArmorEffects;
 import com.gilfort.zauberei.item.ZaubereiItems;
 import com.gilfort.zauberei.item.armor.ZaubereiArmorMaterials;
 import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
+import com.gilfort.zauberei.structure.ZaubereiStructures;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.jetbrains.annotations.NotNull;
@@ -60,18 +61,11 @@ public class Zauberei
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
-//        // Register the Deferred Register to the mod event bus so blocks get registered
-//        BLOCKS.register(modEventBus);
-//        // Register the Deferred Register to the mod event bus so items get registered
-//        ITEMS.register(modEventBus);
-//        // Register the Deferred Register to the mod event bus so tabs get registered
-//        CREATIVE_MODE_TABS.register(modEventBus);
-
         ZaubereiItems.register(modEventBus);
-
         ZaubereiCreativeModeTabs.register(modEventBus);
         ArmorEffects.register(modEventBus);
         ZaubereiArmorMaterials.register(modEventBus);
+        ZaubereiStructures.STRUCTURES.register(modEventBus);
 
 
         // Register ourselves for server and other game events we are interested in.

@@ -9,9 +9,17 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
+import net.minecraft.world.level.storage.WorldData;
 
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -110,6 +118,7 @@ public class CommandHandler {
         }
 
         String major = PlayerDataHelper.getMajor(targetPlayer);
+
         source.sendSuccess(() -> Component.literal("Player:" + playerName + " hat den Major-Typ: " + major), true);
 
         return Command.SINGLE_SUCCESS;

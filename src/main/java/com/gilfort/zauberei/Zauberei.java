@@ -99,15 +99,21 @@ public class Zauberei
     {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+
+        //Loads all set_effect files from config/zauberei/set_effects and applies effects
+        ZaubereiReloadListener.loadAllEffects();
+
     }
     public static ResourceLocation id(@NotNull String path) {
         return ResourceLocation.fromNamespaceAndPath(Zauberei.MODID, path);
     }
 
+
+
     @SubscribeEvent
     public void onAddReloadListenerEvent(AddReloadListenerEvent event) {
         // Hier deinen Listener hinzufügen
-        event.addListener(new ZaubereiReloadListener());
+
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent

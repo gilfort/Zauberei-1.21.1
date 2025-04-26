@@ -2,6 +2,7 @@ package com.gilfort.zauberei.command;
 
 import com.gilfort.zauberei.helpers.PlayerDataHelper;
 import com.gilfort.zauberei.item.armorbonus.ArmorSetDataRegistry;
+import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -48,7 +49,15 @@ public class CommandHandler {
                                 .then(Commands.argument("major", StringArgumentType.word())
                                         .then(Commands.argument("year", IntegerArgumentType.integer())
                                                 .then(Commands.argument("armorMaterial", StringArgumentType.word())
-                                                        .executes(CommandHandler::testSetsCommand))))));
+                                                        .executes(CommandHandler::testSetsCommand)))))
+                        .then(Commands.literal("reload")
+                                .executes(context -> reloadArmorEffects(context.getSource()))));
+    }
+
+    private static int reloadArmorEffects(CommandSourceStack source){
+        ZaubereiReloadListener.loadAllEffects();
+        source.sendSuccess(()-> net.minecraft.network.chat.Component.literal("[Zauberei] Reloaded Set-Effects"), true);
+        return 1;
     }
 
     private  static int testSetsCommand(CommandContext<CommandSourceStack> context){

@@ -4,11 +4,11 @@
       "Effects": [
         {
           "Effect": "speed",
-          "Amplifier": 0
+          "Amplifier": 5
         }
       ],
       "Attributes": {
-        "minecraft:max_health": 1,
+        "minecraft:max_health": 100,
         "minecraft:armor": 1
       }
     },

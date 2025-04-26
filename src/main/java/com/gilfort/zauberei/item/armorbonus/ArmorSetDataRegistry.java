@@ -5,8 +5,15 @@ import java.util.Map;
 
 public class ArmorSetDataRegistry {
 
+
+
+
     // Hier werden alle Daten gesammelt
     private static final Map<String, ArmorSetData> DATA_MAP = new HashMap<>();
+
+    public static void clear(){
+        DATA_MAP.clear();
+    }
 
     // Der Reload Listener füllt diese Map nach dem apply()
     public static void put(String major, int year, String armorMaterial, ArmorSetData data) {

@@ -7,6 +7,7 @@ import com.gilfort.zauberei.item.armorbonus.ArmorSetDataRegistry;
 import com.google.gson.JsonObject;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,6 +25,9 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.*;
 
+import static com.gilfort.zauberei.component.ComponentRegistry.MAJOR;
+import static com.gilfort.zauberei.component.ComponentRegistry.YEAR;
+
 
 public class ArmorEffects {
 
@@ -39,6 +43,13 @@ public class ArmorEffects {
             String major = PlayerDataHelper.getMajor(player);
             int year = PlayerDataHelper.getYear(player);
             applySetBasedEffects(player, major);
+
+            for (ItemStack stack : player.getArmorSlots()) {
+                if (stack.getItem() instanceof ArmorItem) {
+                    stack.set(MAJOR.value(), major);
+                    stack.set(YEAR.value(),  year);
+                }
+            }
 
         }
     }

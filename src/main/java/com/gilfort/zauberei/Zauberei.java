@@ -1,5 +1,6 @@
 package com.gilfort.zauberei;
 
+import com.gilfort.zauberei.component.ComponentRegistry;
 import com.gilfort.zauberei.creativetab.ZaubereiCreativeModeTabs;
 import com.gilfort.zauberei.item.armor.ArmorEffects;
 import com.gilfort.zauberei.item.ZaubereiItems;
@@ -66,6 +67,7 @@ public class Zauberei
         ArmorEffects.register(modEventBus);
         ZaubereiArmorMaterials.register(modEventBus);
         ZaubereiStructures.STRUCTURES.register(modEventBus);
+        ComponentRegistry.register(modEventBus);
 
 
         // Register ourselves for server and other game events we are interested in.

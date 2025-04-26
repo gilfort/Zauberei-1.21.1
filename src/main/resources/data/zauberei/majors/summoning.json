@@ -1,100 +1,95 @@
 {
   "Levels": {
     "1": {
-      "iron": {
-        "1": {
-          "Effects": [
-            {
-              "Effect": "speed", "Amplifier": "0"
-            }
-          ],
-          "Attributes": {
-            "minecraft:max_health": 1
-          }
-        },
-        "2": {
-          "Effects": [
-            {
-              "Effect": "speed", "Amplifier": "0"
-            },
-            {
-              "Effect": "haste", "Amplifier": "0"
-            }
-          ],
-          "Attributes": {
-            "minecraft:max_health": 4
-          }
-        },
-        "3": {
-          "Effects": [
-            {
-              "Effect": "speed",
-              "Amplifier": "0"
-            },
-            {
-              "Effect": "haste",
-              "Amplifier": "0"
-            },
-            {
-              "Effect": "jump_boost",
-              "Amplifier": "0"
-            }
-          ],
-          "Attributes": {
-            "minecraft:max_health": 8
-          }
-        },
+      "magiccloth": {
+        "4": {
+          "Effects": [],
+          "Attributes": {}
+        }
+      }
+    },
+    "2": {
+      "magiccloth": {
         "4": {
           "Effects": [
-            {"Effect": "speed", "Amplifier": "0"},
-            {"Effect": "haste", "Amplifier": "0"},
-            {"Effect": "jump_boost", "Amplifier": "0"},
-            {"Effect": "regeneration", "Amplifier": "0"}
+            { "Effect": "ars_nouveau:summoning_sickness", "Amplifier": 0 }
+          ],
+          "Attributes": {}
+        }
+      }
+    },
+    "3": {
+      "magiccloth": {
+        "4": {
+          "Effects": [
+            { "Effect": "ars_nouveau:summoning_sickness", "Amplifier": 0 },
+            { "Effect": "ars_nouveau:mana_regen", "Amplifier": 0 }
           ],
           "Attributes": {
-            "minecraft:max_health": 12
+            "irons_spellbooks:summon_damage": 0.1
           }
         }
-      },
-      "diamond": {
-        "1": {
-          "Effects": [
-            {
-              "Effect": "strength", "Amplifier": "0"
-            }
-          ],
-          "Attributes": {
-            "minecraft:armor": 1
-          }
-        },
-        "2": {
-          "Effects": [
-            {"Effect": "strength", "Amplifier": "0"},
-            {"Effect": "resistance", "Amplifier": "0"}
-          ],
-          "Attributes": {
-            "minecraft:armor": 2
-          }
-        },
-        "3": {
-          "Effects": [
-            {"Effect": "strength", "Amplifier": "0"},
-            {"Effect": "resistance", "Amplifier": "0"},
-            {"Effect": "speed", "Amplifier": "0"}
-          ],
-          "Attributes": {
-            "minecraft:armor": 3
-          }
-        },
+      }
+    },
+    "4": {
+      "magiccloth": {
         "4": {
           "Effects": [
-            {"Effect": "strength", "Amplifier": "0"},
-            {"Effect": "resistance", "Amplifier": "0"},
-            {"Effect": "speed", "Amplifier": "0"},
-            {"Effect": "jump_boost", "Amplifier": "0"}
-            ],
+            { "Effect": "ars_nouveau:summoning_sickness", "Amplifier": 1 },
+            { "Effect": "ars_nouveau:mana_regen", "Amplifier": 1 }
+          ],
           "Attributes": {
-            "minecraft:armor": 4
+            "irons_spellbooks:summon_damage": 0.2,
+            "irons_spellbooks:mana_regen": 0.1
+          }
+        }
+      }
+    },
+    "5": {
+      "magiccloth": {
+        "4": {
+          "Effects": [
+            { "Effect": "ars_nouveau:summoning_sickness", "Amplifier": 1 },
+            { "Effect": "ars_nouveau:mana_regen", "Amplifier": 1 },
+            { "Effect": "occultism:third_eye", "Amplifier": 0 }
+          ],
+          "Attributes": {
+            "irons_spellbooks:summon_damage": 0.3,
+            "irons_spellbooks:mana_regen": 0.2
+          }
+        }
+      }
+    },
+    "6": {
+      "magiccloth": {
+        "4": {
+          "Effects": [
+            { "Effect": "ars_nouveau:summoning_sickness", "Amplifier": 1 },
+            { "Effect": "ars_nouveau:mana_regen", "Amplifier": 2 },
+            { "Effect": "occultism:third_eye", "Amplifier": 0 },
+            { "Effect": "occultism:double_jump", "Amplifier": 0 }
+          ],
+          "Attributes": {
+            "irons_spellbooks:summon_damage": 0.4,
+            "irons_spellbooks:mana_regen": 0.3,
+            "minecraft:armor": -2
+          }
+        }
+      }
+    },
+    "7": {
+      "magiccloth": {
+        "4": {
+          "Effects": [
+            { "Effect": "ars_nouveau:mana_regen", "Amplifier": 3 },
+            { "Effect": "occultism:third_eye", "Amplifier": 1 },
+            { "Effect": "occultism:double_jump", "Amplifier": 0 },
+            { "Effect": "ars_nouveau:spell_damage", "Amplifier": 1 }
+          ],
+          "Attributes": {
+            "irons_spellbooks:summon_damage": 0.5,
+            "irons_spellbooks:mana_regen": 0.5,
+            "minecraft:armor": -4
           }
         }
       }

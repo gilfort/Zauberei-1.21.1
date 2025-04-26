@@ -25,8 +25,8 @@ import java.util.Set;
 
 public class CommandHandler {
     private static final Set<String> VALID_MAJORS = Set.of(
-            "summoning", "hemomagic", "arcanes", "elemental",
-            "circle_of_life", "magicalcombat", "otherworld"
+            "summoning", "alchemy", "arcane", "elemental",
+            "herbomancy", "magicalcombat", "dark_arts"
     );
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {

@@ -7,7 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 public class PlayerDataHelper {
     
     private static final String MAJOR_TAG = "Major";
-    private static final int YEAR_TAG = 0;
+    private static final String YEAR_TAG = "Year";
 
     // Speichert den Major-Tag
     public static void setMajor(ServerPlayer player, String major) {
@@ -26,7 +26,7 @@ public class PlayerDataHelper {
     // Speichert den Year-Tag
     public static void setYear(ServerPlayer player, int year) {
         CompoundTag persistentData = player.getPersistentData().getCompound(Zauberei.MODID);
-        persistentData.putInt(String.valueOf(YEAR_TAG), year);
+        persistentData.putInt(YEAR_TAG, year);
         player.getPersistentData().put(Zauberei.MODID, persistentData);
         Zauberei.LOGGER.info("YearTag set to " + year + "for" + player.getName().getString());
     }
@@ -34,6 +34,6 @@ public class PlayerDataHelper {
     // Liest den Year-Tag
     public static int getYear(ServerPlayer player) {
         CompoundTag persistentData = player.getPersistentData().getCompound(Zauberei.MODID);
-        return persistentData.getInt(String.valueOf(YEAR_TAG));
+        return persistentData.getInt(YEAR_TAG);
     }
 }

@@ -106,7 +106,7 @@ public class CommandsService {
     }
 
     @SubscribeEvent
-    public void onAdvancement(AdvancementEvent.AdvancementEarnedEvent event) {
+    public void onAdvancement(AdvancementEvent.AdvancementEarnEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         GwState state = states.get(player.getUUID());
         if (state == null) return;
@@ -115,8 +115,7 @@ public class CommandsService {
     }
 
     @SubscribeEvent
-    public void onServerTick(ServerTickEvent event) {
-        if (event.getPhase() != ServerTickEvent.Phase.END) return;
+    public void onServerTick(ServerTickEvent.Post event) {
         tickCounter++;
         if (tickCounter < 20) return;
         tickCounter = 0;

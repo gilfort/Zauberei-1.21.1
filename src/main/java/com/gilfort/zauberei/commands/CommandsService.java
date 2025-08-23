@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /** Service managing per-player timers and command execution. */
+
 @EventBusSubscriber
 public class CommandsService {
     private static final CommandsService INSTANCE = new CommandsService();

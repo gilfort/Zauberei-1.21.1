@@ -1,7 +1,10 @@
 package com.gilfort.zauberei.commands;
 
 import com.gilfort.zauberei.Zauberei;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.loading.FMLPaths;
@@ -50,6 +53,7 @@ public class CommandsConfig {
                 .registerTypeAdapter(ResourceLocation.class, (JsonDeserializer<ResourceLocation>)
                         (json, type, ctx) -> ResourceLocation.parse(json.getAsString()))
                 .create();
+
         try (FileReader fr = new FileReader(file)) {
             JsonReader reader = new JsonReader(fr);
             reader.setLenient(true);

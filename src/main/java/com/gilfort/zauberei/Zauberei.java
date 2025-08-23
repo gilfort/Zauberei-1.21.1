@@ -7,6 +7,7 @@ import com.gilfort.zauberei.item.ZaubereiItems;
 import com.gilfort.zauberei.item.armor.ZaubereiArmorMaterials;
 import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
 import com.gilfort.zauberei.structure.ZaubereiStructures;
+import com.gilfort.zauberei.util.ZaubereiPlayerData;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +69,7 @@ public class Zauberei
         ZaubereiArmorMaterials.register(modEventBus);
         ZaubereiStructures.STRUCTURES.register(modEventBus);
         ComponentRegistry.register(modEventBus);
+        ZaubereiPlayerData.ATTACHMENT_TYPES.register(modEventBus);
 
 
         // Register ourselves for server and other game events we are interested in.

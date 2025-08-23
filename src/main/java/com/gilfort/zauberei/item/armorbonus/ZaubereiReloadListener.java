@@ -1,20 +1,18 @@
 package com.gilfort.zauberei.item.armorbonus;
 
 import com.gilfort.zauberei.Zauberei;
-import com.gilfort.zauberei.item.armor.ArmorEffects;
 import com.google.gson.*;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.locale.Language;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
+
 
 // Ein Listener, der alle JSON-Dateien in config/zauberei/set_effects einliest
 public class ZaubereiReloadListener {
@@ -77,70 +75,66 @@ public class ZaubereiReloadListener {
                 return;
             }
 
-            ArmorSetData data = GSON.fromJson(json, ArmorSetData.class);
-            ArmorSetDataRegistry.put(major, year, material, data);
+            ArmorSetData rawdata = GSON.fromJson(json, ArmorSetData.class);
+            ArmorSetData validatedData = validateData(rawdata, file);
+            ArmorSetDataRegistry.put(major, year, material, validatedData);
             Zauberei.LOGGER.info("Loaded effects for {}; {}; {}", major, year, material);
         }
     }
-}
 
-//
-//    // New Gson instance
-//    private static final Gson GSON = new Gson();
-//
-//    // Konstruktor: Übergebe Pfad, ab dem gesucht werden soll, hier "materials"
-//    public ZaubereiReloadListener() {
-//        super(GSON, FMLPaths.CONFIGDIR + File.separator + "zauberei" + File.separator + "set_armor");
-//    }
-//
-//    @Override
-//    protected void apply(Map<ResourceLocation, JsonElement> objects, ResourceManager resourceManager, ProfilerFiller profiler) {
-//        // objects ist eine Map<ResourceLocation, JsonElement>
-//        // -> Enthält alle JSON-Dateien, die im Ordner "set_armor/" gefunden wurden
-//
-//        for (Map.Entry<ResourceLocation, JsonElement> entry : objects.entrySet()) {
-//            ResourceLocation loc = entry.getKey();
-//            JsonObject json = entry.getValue().getAsJsonObject();
-//            Zauberei.LOGGER.info("Gefundene JSON: {} Inhalt: {}", loc, json);
-//
-//            String path = loc.getPath();
-//
-//            String[] parts = path.split("/");
-//            if (parts.length < 3) {
-//                Zauberei.LOGGER.error("Invalid path: {}", path);
-//                continue;
-//            }
-//
-//            String major = parts[0];
-//            int year;
-//            try {
-//                year = Integer.parseInt(parts[1]);
-//            } catch (NumberFormatException e) {
-//                Zauberei.LOGGER.error("Invalid year: {} - skipping file {}", parts[1], path);
-//                continue;
-//            }
-//
-//            String armorMaterial = parts[2];
-//
-//            String fileName = parts[2];
-//            if (fileName.endsWith(".json")) {
-//                fileName = fileName.substring(0, fileName.length() - 5);
-//            }
-//
-//            ArmorSetData data;
-//            try {
-//                data = GSON.fromJson(json, ArmorSetData.class);
-//            } catch (JsonSyntaxException e) {
-//                Zauberei.LOGGER.error("Invalid JSON: {} - skipping file {}", e.getMessage(), path);
-//                continue;
-//            }
-//
-//
-//            Zauberei.LOGGER.info("Parsed major={}, year={}, armor={}", major, year, armorMaterial);
-//
-//            ArmorSetDataRegistry.put(major, year, armorMaterial, data);
-//        }
-//
-//    }
-//
-//}
+    private static ArmorSetData validateData(ArmorSetData data, File file) {
+        data.getParts().forEach((partName, partData) -> {
+            // 2.1 Effekte validieren
+            if (partData.getEffects() != null) {
+                var it = partData.getEffects().iterator();
+                while (it.hasNext()) {
+                    ArmorSetData.EffectData ed = it.next();
+                    // Ressource lokalisieren
+                    ResourceLocation id = tryMakeResourceLocation(ed.getEffect());
+                    MobEffect mob = id == null ? null : BuiltInRegistries.MOB_EFFECT.get(id);
+                    if (mob == null) {
+                        Zauberei.LOGGER.error("Unbekannter Effekt '{}' in {} – übersprungen", ed.getEffect(), file);
+                        it.remove();
+                        continue;
+                    }
+                    // Level prüfen und clampen
+                    int lvl = ed.getAmplifier() + 1;
+                    String key = "enchantment.level." + lvl;
+                    if (!Language.getInstance().has(key)) {
+                        int max = 5; // z.B. Max-Level
+                        Zauberei.LOGGER.warn("Level {} für Effekt '{}' in {} ungültig, clamped auf {}", lvl, ed.getEffect(), file, max);
+                        ed.setAmplifier(max - 1);
+                    }
+                }
+            }
+
+            // 2.2 Attribute validieren
+            if (partData.getAttributes() != null) {
+                var attrIt = partData.getAttributes().entrySet().iterator();
+                while (attrIt.hasNext()) {
+                    var entry = attrIt.next();
+                    ResourceLocation aid = tryMakeResourceLocation(entry.getKey());
+                    Attribute attr = aid == null ? null : BuiltInRegistries.ATTRIBUTE.get(aid);
+                    if (attr == null) {
+                        Zauberei.LOGGER.error("Unbekanntes Attribut '{}' in {} – entfernt", entry.getKey(), file);
+                        attrIt.remove();
+                    }
+                    // Bei Bedarf hier noch Wert-Clamping implementieren
+                }
+            }
+        });
+        return data;
+    }
+
+    private static ResourceLocation tryMakeResourceLocation(String raw) {
+        String s = raw.contains(":") ? raw : "minecraft:" + raw;
+        try {
+            return ResourceLocation.tryParse(s);
+        } catch (Exception e) {
+            Zauberei.LOGGER.error("Ungültige ResourceLocation '{}' – {}", raw, e.getMessage());
+            return null;
+        }
+    }
+
+
+}

@@ -28,7 +28,7 @@ public class ZaubereiArmorMaterials {
     }
 
     public static DeferredHolder<ArmorMaterial, ArmorMaterial> MAGICCLOTH = register("magiccloth",
-            makeArmorMap(2,6,5,2),
+            makeArmorMap(1,3,2,1),
             15,
             SoundEvents.ARMOR_EQUIP_LEATHER,
             ()-> Ingredient.of(Tags.Items.LEATHERS),

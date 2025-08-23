@@ -1,5 +1,7 @@
 package com.gilfort.zauberei.item.armorbonus;
 
+import org.w3c.dom.Attr;
+
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +20,7 @@ public class ArmorSetData {
     public static class PartData {
         // Gson wird diese Felder per Namen matchen:
         private List<EffectData> Effects;
-        private Map<String, Integer> Attributes;
+        private Map<String, AttributeData> Attributes;
 
         // Getter und Setter (oder public Felder, je nachdem was du bevorzugst)
         public List<EffectData> getEffects() {
@@ -29,11 +31,11 @@ public class ArmorSetData {
             Effects = effects;
         }
 
-        public Map<String, Integer> getAttributes() {
+        public Map<String, AttributeData> getAttributes() {
             return Attributes;
         }
 
-        public void setAttributes(Map<String, Integer> attributes) {
+        public void setAttributes(Map<String, AttributeData> attributes) {
             Attributes = attributes;
         }
     }
@@ -58,4 +60,13 @@ public class ArmorSetData {
             Effect = effect;
         }
     }
+
+    public static class AttributeData{
+        private double value;
+        private String modifier;
+
+        public double getValue(){return value;}
+        public String getModifier(){return modifier;}
+    }
+
 }

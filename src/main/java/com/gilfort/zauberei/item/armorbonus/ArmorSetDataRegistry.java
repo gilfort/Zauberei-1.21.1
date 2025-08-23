@@ -1,11 +1,12 @@
 package com.gilfort.zauberei.item.armorbonus;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ArmorSetDataRegistry {
-
-
 
 
     // Hier werden alle Daten gesammelt
@@ -57,4 +58,13 @@ public class ArmorSetDataRegistry {
     private static String makeKey(String major, int year, String material) {
         return major + ":" + year + ":" + material;
     }
+
+    public static Set<String> getMajors() {
+        return Collections.unmodifiableSet(
+                DATA_MAP.keySet().stream()
+                        .map(key -> key.split(":", 2)[0])
+                        .collect(Collectors.toSet())
+        );
+    }
+
 }

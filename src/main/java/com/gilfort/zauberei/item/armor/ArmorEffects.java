@@ -37,8 +37,18 @@ public class ArmorEffects {
         NeoForge.EVENT_BUS.addListener(ArmorEffects::onPlayerTick);
     }
 
+    private static int tickcounter = 0;
+
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (!event.getEntity().level().isClientSide() && event.getEntity() instanceof ServerPlayer player) {
+
+            tickcounter++;
+
+            if (tickcounter < 60) {
+                return;
+            }
+
+            tickcounter = 0;
             player = (ServerPlayer) event.getEntity();
             String major = PlayerDataHelper.getMajor(player);
             int year = PlayerDataHelper.getYear(player);
@@ -47,7 +57,7 @@ public class ArmorEffects {
             for (ItemStack stack : player.getArmorSlots()) {
                 if (stack.getItem() instanceof ArmorItem) {
                     stack.set(MAJOR.value(), major);
-                    stack.set(YEAR.value(),  year);
+                    stack.set(YEAR.value(), year);
                 }
             }
 
@@ -108,13 +118,27 @@ public class ArmorEffects {
 
         removeOldZaubereiModifiers(player);
 
-        for (Map.Entry<String, Integer> entry : partData.getAttributes().entrySet()) {
+        for (Map.Entry<String, ArmorSetData.AttributeData> entry : partData.getAttributes().entrySet()) {
             String attributeName = entry.getKey();
-            double value = entry.getValue();
-
-
+            ArmorSetData.AttributeData value = entry.getValue();
             Holder.Reference<Attribute> attributeHolder = getAttributeHolder(attributeName);
 
+            AttributeModifier.Operation operation;
+            switch (value.getModifier().toLowerCase()) {
+                case "addition":
+                    operation = AttributeModifier.Operation.ADD_VALUE;
+                    break;
+                case "multiply":
+                    operation = AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
+                    break;
+                case "multiply_total":
+                    operation = AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
+                    break;
+                default:
+                    Zauberei.LOGGER.error("[Zauberei] Invalid modifier type: {}, replaced with 'ADD_VALUE'", value.getModifier());
+                    operation = AttributeModifier.Operation.ADD_VALUE;
+                    continue;
+            }
 
             AttributeInstance attributeInstance = player.getAttribute(attributeHolder);
             if (attributeInstance == null) {
@@ -125,8 +149,8 @@ public class ArmorEffects {
 
             AttributeModifier modifier = new AttributeModifier(
                     modifierId,
-                    value,
-                    AttributeModifier.Operation.ADD_VALUE
+                    value.getValue(),
+                    operation
             );
 
             attributeInstance.addTransientModifier(modifier);

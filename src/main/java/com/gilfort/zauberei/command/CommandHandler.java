@@ -8,51 +8,41 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.core.Vec3i;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.levelgen.structure.Structure;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
-import net.minecraft.world.level.storage.WorldData;
 
-import java.util.Optional;
 import java.util.Set;
 
 
 public class CommandHandler {
-    private static final Set<String> VALID_MAJORS = Set.of(
-            "summoning", "alchemy", "arcane", "elemental",
-            "herbomancy", "magicalcombat", "dark_arts"
-    );
+
+    public static final SuggestionProvider<CommandSourceStack> MAJOR_SUGGESTIONS = (ctx, builder) ->
+            SharedSuggestionProvider.suggest(ArmorSetDataRegistry.getMajors(), builder);
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("zauberei")
                         .then(Commands.literal("setmajor")
                                 .then(Commands.argument("major", StringArgumentType.word())
+                                        .suggests(MAJOR_SUGGESTIONS)
                                         .executes(CommandHandler::setMajorCommand)))
-                        .then(Commands.literal("checktag")
+                        .then(Commands.literal("checkmajor")
                                 .then(Commands.argument("player", StringArgumentType.word())
-                                        .executes(CommandHandler::checkTagCommand)))
+                                        .executes(CommandHandler::checkMajorCommand)))
                         .then(Commands.literal("setyear")
                                 .then(Commands.argument("year", IntegerArgumentType.integer())
                                         .executes(CommandHandler::setYearCommand)))
-                        .then(Commands.literal("checkyeartag")
+                        .then(Commands.literal("checkyear")
                                 .then(Commands.argument("player", StringArgumentType.word())
-                                        .executes(CommandHandler::checkYearTagCommand)))
-                        .then(Commands.literal("test_sets")
-                                .then(Commands.argument("major", StringArgumentType.word())
-                                        .then(Commands.argument("year", IntegerArgumentType.integer())
-                                                .then(Commands.argument("armorMaterial", StringArgumentType.word())
-                                                        .executes(CommandHandler::testSetsCommand)))))
+                                        .executes(CommandHandler::checkYearCommand)))
                         .then(Commands.literal("reload")
                                 .executes(context -> reloadArmorEffects(context.getSource()))));
     }
+
 
     private static int reloadArmorEffects(CommandSourceStack source){
         ZaubereiReloadListener.loadAllEffects();
@@ -60,26 +50,6 @@ public class CommandHandler {
         return 1;
     }
 
-    private  static int testSetsCommand(CommandContext<CommandSourceStack> context){
-        String major = StringArgumentType.getString(context, "major");
-        int year = IntegerArgumentType.getInteger(context, "year");
-        String armorMaterial = StringArgumentType.getString(context, "armorMaterial");
-        CommandSourceStack source = context.getSource();
-
-        if (!(source.getEntity() instanceof ServerPlayer player)) {
-            source.sendFailure(Component.literal("Dieser Befehl kann nur von einem Spieler ausgeführt werden."));
-            return Command.SINGLE_SUCCESS;
-        }
-
-        if (!VALID_MAJORS.contains(major)) {
-            source.sendFailure(Component.literal("Ungültiger Major-Typ. Gültige Optionen: " + VALID_MAJORS));
-            return Command.SINGLE_SUCCESS;
-        }
-
-        ArmorSetDataRegistry.debugPrintData(major, year, armorMaterial);
-
-        return Command.SINGLE_SUCCESS;
-    }
 
     private static int setMajorCommand(CommandContext<CommandSourceStack> context) {
         String major = StringArgumentType.getString(context, "major");
@@ -90,13 +60,8 @@ public class CommandHandler {
             return Command.SINGLE_SUCCESS;
         }
 
-        if (!VALID_MAJORS.contains(major)) {
-            source.sendFailure(Component.literal("Ungültiger Major-Typ. Gültige Optionen: " + VALID_MAJORS));
-            return Command.SINGLE_SUCCESS;
-        }
-
         PlayerDataHelper.setMajor(player, major);
-        source.sendSuccess(() -> Component.literal("Mayor-Typ gesetzt: " + major), true);
+        source.sendSuccess(() -> Component.literal("Major-Typ gesetzt: " + major), true);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -116,7 +81,7 @@ public class CommandHandler {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int checkTagCommand(CommandContext<CommandSourceStack> context) {
+    private static int checkMajorCommand(CommandContext<CommandSourceStack> context) {
         String playerName = StringArgumentType.getString(context, "player");
         CommandSourceStack source = context.getSource();
 
@@ -133,7 +98,7 @@ public class CommandHandler {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int checkYearTagCommand(CommandContext<CommandSourceStack> context) {
+    private static int checkYearCommand(CommandContext<CommandSourceStack> context) {
         String playerName = StringArgumentType.getString(context, "player");
         CommandSourceStack source = context.getSource();
 

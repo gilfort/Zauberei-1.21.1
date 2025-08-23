@@ -25,6 +25,13 @@
     * Added tooltips for items
     * formatting codes: https://minecraft.wiki/w/Formatting_codes
     */
-  "tooltipp.zauberei.wand": "Zauberstab, der deine §9Wünsche§r wahrwerden lässt!"
+  "tooltip.zauberei.wand": "Zauberstab, der deine §9Wünsche§r wahrwerden lässt!",
+
+  /*
+  * Thoughts and agsnoce comments
+  */
+
+  "zauberei.agnosce_intro.0": "🔷 AGNOSCE System initiated",
+  "zauberei.agnosce_intro.1": "🔷 Transfer is being secured"
 
 }

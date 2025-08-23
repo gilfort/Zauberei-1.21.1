@@ -15,7 +15,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Interaction;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
@@ -95,18 +97,46 @@ public class MagicclothArmorItem extends ExtendedArmorItem {
 
             if (partData != null && partData.getEffects() != null) {
                 for (ArmorSetData.EffectData effect : partData.getEffects()) {
-                    tooltip.add(Component.literal(
-                            "- " + effect.getEffect() + " " + (effect.getAmplifier() + 1)
-                    ).withStyle(ChatFormatting.LIGHT_PURPLE));
+                    MobEffect mobEffect = BuiltInRegistries.MOB_EFFECT.get(ResourceLocation.parse(effect.getEffect()));
+                    Component effectName = Component.translatable(mobEffect.getDisplayName().getString());
+                    int level = effect.getAmplifier() + 1;
+                    Component levelRoman = Component.translatable("enchantment.level." +level);
+                    tooltip.add(Component.literal("- ")
+                            .append(effectName)
+                            .append(" ")
+                            .append(levelRoman)
+                            .withStyle(ChatFormatting.DARK_PURPLE));
                 }
             }
 
             if (partData != null && partData.getAttributes() != null) {
-                tooltip.add(Component.literal("§b[Bonus-Attribute]").withStyle(ChatFormatting.AQUA));
-                for (Map.Entry<String, Integer> attr : partData.getAttributes().entrySet()) {
-                    tooltip.add(Component.literal(
-                            "+ " + attr.getValue() + " " + attr.getKey()
-                    ).withStyle(ChatFormatting.GREEN));
+                tooltip.add(Component.literal("§b[Bonus-Attributes]").withStyle(ChatFormatting.AQUA));
+                for (Map.Entry<String, ArmorSetData.AttributeData> attr : partData.getAttributes().entrySet()) {
+
+                    String key = attr.getKey();
+                    ArmorSetData.AttributeData attributeData = attr.getValue();
+                    Attribute attribute = BuiltInRegistries.ATTRIBUTE.get(ResourceLocation.parse(attr.getKey()));
+                    if (attribute == null) continue;
+                    Component attributeName = Component.translatable(attribute.getDescriptionId());
+                    double rawvalue = attr.getValue().getValue();
+                    String modifier = attr.getValue().getModifier();
+                    String displayValue;
+
+                    if(modifier.equalsIgnoreCase("multiply")||modifier.equalsIgnoreCase("multiply_base")||modifier.equalsIgnoreCase("multiply_total")){
+
+                        displayValue = String.format("+%.0f%%", rawvalue*100);
+
+                    }else{
+                        displayValue = (rawvalue == (long)rawvalue)
+                                ?String.format("+%d", (long)rawvalue)
+                                :String.format("+%.2f", rawvalue);
+                    }
+
+
+                    tooltip.add(attributeName.copy()
+                            .append(" ")
+                            .append(Component.literal(displayValue))
+                            .withStyle(ChatFormatting.GREEN));
                 }
             }
         }

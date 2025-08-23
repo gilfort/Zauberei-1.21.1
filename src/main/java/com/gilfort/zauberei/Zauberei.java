@@ -5,6 +5,7 @@ import com.gilfort.zauberei.creativetab.ZaubereiCreativeModeTabs;
 import com.gilfort.zauberei.item.armor.ArmorEffects;
 import com.gilfort.zauberei.item.ZaubereiItems;
 import com.gilfort.zauberei.item.armor.ZaubereiArmorMaterials;
+import com.gilfort.zauberei.commands.CommandsService;
 import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
 import com.gilfort.zauberei.structure.ZaubereiStructures;
 import com.gilfort.zauberei.util.ZaubereiPlayerData;
@@ -75,6 +76,7 @@ public class Zauberei
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (ExampleMod) to respond directly to events.
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
+        CommandsService.init();
         NeoForge.EVENT_BUS.register(this);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us

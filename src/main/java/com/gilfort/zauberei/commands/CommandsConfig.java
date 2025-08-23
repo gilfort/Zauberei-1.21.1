@@ -49,7 +49,11 @@ public class CommandsConfig {
             Zauberei.LOGGER.warn("Commands config not found: {}", file.getAbsolutePath());
             return new CommandsConfig();
         }
-        Gson gson = new GsonBuilder().create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(ResourceLocation.class, (JsonDeserializer<ResourceLocation>)
+                        (json, type, ctx) -> ResourceLocation.parse(json.getAsString()))
+                .create();
+
         try (FileReader fr = new FileReader(file)) {
             JsonReader reader = new JsonReader(fr);
             reader.setLenient(true);
@@ -59,7 +63,7 @@ public class CommandsConfig {
             Zauberei.LOGGER.info("Loaded commands config: {} aliases, {} tagRules, {} tierRules, {} command entries",
                     cfg.aliases.size(), cfg.tagRules.size(), cfg.tierRules.size(), cfg.commands.size());
             return cfg;
-        } catch (IOException e) {
+        } catch (IOException | JsonParseException e) {
             Zauberei.LOGGER.error("Failed reading commands config {}: {}", file.getAbsolutePath(), e.getMessage());
             return new CommandsConfig();
         }

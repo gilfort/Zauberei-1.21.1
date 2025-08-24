@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
@@ -19,7 +20,6 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** Service managing per-player timers and command execution. */
 public class CommandsService {
     private static final CommandsService INSTANCE = new CommandsService();
 

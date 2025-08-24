@@ -50,6 +50,7 @@ public class CommandsConfig {
                 .registerTypeAdapter(ResourceLocation.class, (JsonDeserializer<ResourceLocation>)
                         (json, type, ctx) -> ResourceLocation.parse(json.getAsString()))
                 .create();
+
         try (FileReader fr = new FileReader(file)) {
             JsonReader reader = new JsonReader(fr);
             reader.setLenient(true);

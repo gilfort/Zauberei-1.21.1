@@ -20,9 +20,6 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** Service managing per-player timers and command execution. */
-
-
 public class CommandsService {
     private static final CommandsService INSTANCE = new CommandsService();
 
@@ -222,10 +219,13 @@ public class CommandsService {
 
     private Optional<CommandWithPos> findMatchingCommand(ServerPlayer player, GwState st) {
         List<CommandWithPos> pool = new ArrayList<>();
-        for (CommandsConfig.CommandEntry entry : config.commands) {
-            if (!matches(entry.when, st)) continue;
-            for (String cmd : entry.pool) {
-                pool.add(new CommandWithPos(cmd, entry.position));
+        if (config.commands != null) {
+            for (CommandsConfig.CommandEntry entry : config.commands) {
+                if (entry == null || entry.when == null || entry.pool == null) continue;
+                if (!matches(entry.when, st)) continue;
+                for (String cmd : entry.pool) {
+                    pool.add(new CommandWithPos(cmd, entry.position));
+                }
             }
         }
         if (pool.isEmpty()) return Optional.empty();
@@ -233,6 +233,7 @@ public class CommandsService {
     }
 
     private boolean matches(CommandsConfig.When when, GwState st) {
+        if (when == null) return false;
         if (when.minTier > st.tier) return false;
         if (when.anyTags != null && !when.anyTags.isEmpty()) {
             boolean ok = false;

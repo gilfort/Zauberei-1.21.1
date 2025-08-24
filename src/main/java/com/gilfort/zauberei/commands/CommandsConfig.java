@@ -70,6 +70,22 @@ public class CommandsConfig {
         if (tierWindows.isEmpty()) {
             tierWindows.put(1, new int[]{1, 2});
         }
+        // sanitize command entries to avoid nulls during runtime
+        if (commands != null) {
+            List<CommandEntry> cleaned = new ArrayList<>();
+            for (CommandEntry entry : commands) {
+                if (entry == null) continue;
+                if (entry.when == null) entry.when = new When();
+                if (entry.pool == null) entry.pool = new ArrayList<>();
+                if (entry.position == null || entry.position.isBlank()) {
+                    entry.position = "nearby";
+                }
+                cleaned.add(entry);
+            }
+            commands = cleaned;
+        } else {
+            commands = new ArrayList<>();
+        }
     }
 
     public static class TagRule {

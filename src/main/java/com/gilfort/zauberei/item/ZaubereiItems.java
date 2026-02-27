@@ -3,7 +3,6 @@ package com.gilfort.zauberei.item;
 import com.gilfort.zauberei.Zauberei;
 import com.gilfort.zauberei.item.armor.MagicclothArmorItem;
 import com.gilfort.zauberei.item.custom.IntroductionLetter;
-import com.gilfort.zauberei.item.custom.WandItem;
 import com.gilfort.zauberei.util.ItemPropertiesHelper;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;

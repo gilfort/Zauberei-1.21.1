@@ -4,6 +4,7 @@ import com.gilfort.zauberei.component.ComponentRegistry;
 import com.gilfort.zauberei.creativetab.ZaubereiCreativeModeTabs;
 import com.gilfort.zauberei.item.armor.ArmorEffects;
 import com.gilfort.zauberei.item.ZaubereiItems;
+import com.gilfort.zauberei.item.armor.ArmorSetTooltipHandler;
 import com.gilfort.zauberei.item.armor.ZaubereiArmorMaterials;
 import com.gilfort.zauberei.commands.CommandsService;
 import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
@@ -130,6 +131,8 @@ public class Zauberei
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+
+            ArmorSetTooltipHandler.register();
         }
     }
 }

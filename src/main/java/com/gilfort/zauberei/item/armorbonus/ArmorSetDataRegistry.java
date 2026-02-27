@@ -1,5 +1,11 @@
 package com.gilfort.zauberei.item.armorbonus;
 
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +50,24 @@ public class ArmorSetDataRegistry {
                         .map(key -> key.split(":", 2)[0])
                         .collect(Collectors.toSet())
         );
+    }
+
+    public static boolean isItemInAnyRegisteredTag(ItemStack stack) {
+        for (String key : DATA_MAP.keySet()) {
+            // Key format: "major:year:namespace:tagpath"
+            // Tag ist alles ab dem 3. Doppelpunkt
+            String[] parts = key.split(":", 3);
+            if (parts.length < 3) continue;
+            String tagString = parts[2]; // z.B. "zauberei:magiccloth_armor"
+            try {
+                ResourceLocation tagLoc = ResourceLocation.parse(tagString);
+                TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLoc);
+                if (stack.is(tagKey)) return true;
+            } catch (Exception e) {
+                continue;
+            }
+        }
+        return false;
     }
 
     private static String makeKey(String major, int year, String tag) {

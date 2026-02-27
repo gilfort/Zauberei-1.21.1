@@ -27,6 +27,15 @@ public class Config {
     public static final ModConfigSpec.ConfigValue<String> LETTER_TEXT;
     public static final ModConfigSpec.ConfigValue<Boolean> SPAWN_WITCHWOOD_SCHOOL;
 
+    /**
+     * When set to false, all Magiccloth Armor items and the Introduction Letter
+     * are hidden from the Creative Tab and from item viewers like JEI/EMI.
+     * Items remain registered to prevent crashes in existing worlds.
+     * The set effect system (ArmorEffects, ArmorSetData, etc.) is always active.
+     * Requires a game restart to take effect.
+     */
+    public static final ModConfigSpec.ConfigValue<Boolean> ENABLE_MAGICAL_ARMOR;
+
     static {
         LETTER_ITEMS = BUILDER
                 .comment("\nItems, the player can get when using the Introduction Letter\n")
@@ -44,26 +53,34 @@ public class Config {
         LETTER_TEXT = BUILDER
                 .comment("\nText shown in the introduction letter item. Use %player% as a placeholder for the player name.\n")
                 .define("letter_text",
-                     """
-                     Dear %player%,
-                     
-                     Congratulations!
-                     Our detection system - \"Oculus\" - has recognized your magical talent.
-                     We are pleased to inform you that you have been accepted into our school as a scholarship student.
-                     From today on you are part of the Witchwood Academy.
-                     
-                     To receive your first-year supplies, please tear this letter apart.
-                     Welcome to a world where magic comes to life.
-                     We look forward to guiding you on your journey and helping you master your new skills.
-                     
-                     Yours sincerely,
-                     Professor McDumblesnape
-                     Headmaster of Witchwood Academy
-                     """);
+                        """
+                        Dear %player%,
+                        
+                        Congratulations!
+                        Our detection system - "Oculus" - has recognized your magical talent.
+                        We are pleased to inform you that you have been accepted into our school as a scholarship student.
+                        From today on you are part of the Witchwood Academy.
+                        
+                        To receive your first-year supplies, please tear this letter apart.
+                        Welcome to a world where magic comes to life.
+                        We look forward to guiding you on your journey and helping you master your new skills.
+                        
+                        Yours sincerely,
+                        Professor McDumblesnape
+                        Headmaster of Witchwood Academy
+                        """);
 
         SPAWN_WITCHWOOD_SCHOOL = BUILDER
                 .comment("\nWhether the Witchwood School should be spawned in the world. (at 0 250 0)\n")
                 .define("spawn_witchwood_school", false);
+
+        ENABLE_MAGICAL_ARMOR = BUILDER
+                .comment("\nWhether the Magiccloth Armor items and the Introduction Letter are enabled.\n"
+                        + "When set to false, these items are hidden from the Creative Tab and item viewers (JEI/EMI).\n"
+                        + "Items remain registered to prevent crashes in existing worlds.\n"
+                        + "The set effect system remains active regardless of this setting.\n"
+                        + "Requires a game restart to take effect.\n")
+                .define("enable_magical_armor", true);
 
     }
 

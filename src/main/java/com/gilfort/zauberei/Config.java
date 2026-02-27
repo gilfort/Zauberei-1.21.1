@@ -48,7 +48,7 @@ public class Config {
                      Dear %player%,
                      
                      Congratulations!
-                     Our detection system - \"Agnosce\" - has recognized your magical talent.
+                     Our detection system - \"Oculus\" - has recognized your magical talent.
                      We are pleased to inform you that you have been accepted into our school as a scholarship student.
                      From today on you are part of the Witchwood Academy.
                      

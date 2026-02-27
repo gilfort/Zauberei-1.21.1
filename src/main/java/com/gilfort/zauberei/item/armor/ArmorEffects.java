@@ -4,13 +4,13 @@ import com.gilfort.zauberei.Zauberei;
 import com.gilfort.zauberei.helpers.PlayerDataHelper;
 import com.gilfort.zauberei.item.armorbonus.ArmorSetData;
 import com.gilfort.zauberei.item.armorbonus.ArmorSetDataRegistry;
-import com.google.gson.JsonObject;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -18,6 +18,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.NeoForge;
@@ -28,10 +29,7 @@ import java.util.*;
 import static com.gilfort.zauberei.component.ComponentRegistry.MAJOR;
 import static com.gilfort.zauberei.component.ComponentRegistry.YEAR;
 
-
 public class ArmorEffects {
-
-    private static final Map<String, JsonObject> DATA = new HashMap<>();
 
     public static void register(IEventBus eventBus) {
         NeoForge.EVENT_BUS.addListener(ArmorEffects::onPlayerTick);
@@ -49,79 +47,116 @@ public class ArmorEffects {
             }
 
             tickcounter = 0;
-            player = (ServerPlayer) event.getEntity();
+
             String major = PlayerDataHelper.getMajor(player);
             int year = PlayerDataHelper.getYear(player);
-            applySetBasedEffects(player, major);
 
+            applySetBasedEffects(player, major, year);
+
+            // keep components updated on armor stacks (used by tooltip)
             for (ItemStack stack : player.getArmorSlots()) {
                 if (stack.getItem() instanceof ArmorItem) {
                     stack.set(MAJOR.value(), major);
                     stack.set(YEAR.value(), year);
                 }
             }
-
         }
     }
 
-
-    private static void applySetBasedEffects(Player player, String major) {
-        Map<String, Integer> armorSetCounts = new HashMap<>();
-
+    /**
+     * Tag-only set logic:
+     * - Read registered tags for (major, year)
+     * - Count how many worn armor pieces match each tag
+     * - Remove old Zauberei modifiers ONCE
+     * - Apply effects + attributes for each matching set
+     */
+    private static void applySetBasedEffects(Player player, String major, int year) {
+        // Early skip: no armor worn at all
+        boolean anyArmor = false;
         for (ItemStack stack : player.getArmorSlots()) {
-            if (stack.getItem() instanceof ArmorItem armorItem) {
-                // Falls `armorItem.getMaterial()` ein registriertes Material ist
-                ResourceLocation materialResource = BuiltInRegistries.ARMOR_MATERIAL.getKey(armorItem.getMaterial().value());
-                if (materialResource != null) {
-                    String materialName = materialResource.getPath(); // z. B. "iron"
-                    armorSetCounts.merge(materialName, 1, Integer::sum);
+            if (!stack.isEmpty() && stack.getItem() instanceof ArmorItem) {
+                anyArmor = true;
+                break;
+            }
+        }
+        if (!anyArmor) {
+            removeOldZaubereiModifiers(player);
+            return;
+        }
+
+        Set<String> registeredTags = ArmorSetDataRegistry.getRegisteredTags(major.toLowerCase(), year);
+        if (registeredTags.isEmpty()) {
+            removeOldZaubereiModifiers(player);
+            return;
+        }
+
+        Map<String, Integer> tagCounts = new HashMap<>();
+
+        // Count worn pieces per tag
+        for (String tagString : registeredTags) {
+            ResourceLocation tagLoc;
+            try {
+                tagLoc = ResourceLocation.parse(tagString);
+            } catch (Exception e) {
+                // Should not happen if validated in reload listener
+                continue;
+            }
+
+            TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLoc);
+
+            int count = 0;
+            for (ItemStack stack : player.getArmorSlots()) {
+                if (!stack.isEmpty() && stack.is(tagKey)) {
+                    count++;
                 }
             }
+
+            if (count > 0) {
+                tagCounts.put(tagString, count);
+            }
         }
 
-        applyEffectsFromJson(player, armorSetCounts);
-    }
-
-    private static void applyEffectsFromJson(Player player, Map<String, Integer> armorCounts) {
-        int year = PlayerDataHelper.getYear((ServerPlayer) player);
-        String major = PlayerDataHelper.getMajor((ServerPlayer) player);
-
-        if (armorCounts.isEmpty()) {
+        if (tagCounts.isEmpty()) {
             removeOldZaubereiModifiers(player);
+            return;
         }
 
-        for (Map.Entry<String, Integer> entry : armorCounts.entrySet()) {
-            String materialName = entry.getKey();
+        // Remove old modifiers ONCE, then apply all sets (stacking allowed)
+        removeOldZaubereiModifiers(player);
+
+        for (Map.Entry<String, Integer> entry : tagCounts.entrySet()) {
+            String tagString = entry.getKey();
             int count = entry.getValue();
 
-            ArmorSetData data = ArmorSetDataRegistry.getData(major.toLowerCase(), year, materialName);
-            if (data == null) {
+            ArmorSetData data = ArmorSetDataRegistry.getData(major.toLowerCase(), year, tagString);
+            if (data == null || data.getParts() == null) {
                 continue;
             }
+
             ArmorSetData.PartData partData = data.getParts().get(count + "Part");
             if (partData == null) {
+                // It's valid to define only e.g. "4Part"
                 continue;
             }
+
             applySetEffects(player, partData);
             applySetAttributes(player, partData);
         }
-
     }
 
-
     private static void applySetAttributes(Player player, ArmorSetData.PartData partData) {
-
-
         if (partData.getAttributes() == null) {
             return;
         }
 
-        removeOldZaubereiModifiers(player);
-
         for (Map.Entry<String, ArmorSetData.AttributeData> entry : partData.getAttributes().entrySet()) {
             String attributeName = entry.getKey();
             ArmorSetData.AttributeData value = entry.getValue();
+
             Holder.Reference<Attribute> attributeHolder = getAttributeHolder(attributeName);
+            if (attributeHolder == null) {
+                continue;
+            }
 
             AttributeModifier.Operation operation;
             switch (value.getModifier().toLowerCase()) {
@@ -129,14 +164,14 @@ public class ArmorEffects {
                     operation = AttributeModifier.Operation.ADD_VALUE;
                     break;
                 case "multiply":
+                case "multiply_base":
                     operation = AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
                     break;
                 case "multiply_total":
                     operation = AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
                     break;
                 default:
-                    Zauberei.LOGGER.error("[Zauberei] Invalid modifier type: {}, replaced with 'ADD_VALUE'", value.getModifier());
-                    operation = AttributeModifier.Operation.ADD_VALUE;
+                    // invalid modifier type -> skip
                     continue;
             }
 
@@ -146,6 +181,9 @@ public class ArmorEffects {
             }
 
             ResourceLocation modifierId = makeModifierId(attributeName);
+            if (modifierId == null) {
+                continue;
+            }
 
             AttributeModifier modifier = new AttributeModifier(
                     modifierId,
@@ -154,16 +192,14 @@ public class ArmorEffects {
             );
 
             attributeInstance.addTransientModifier(modifier);
-
         }
-
     }
 
     private static void removeOldZaubereiModifiers(Player player) {
         for (Attribute attribute : BuiltInRegistries.ATTRIBUTE) {
             Optional<ResourceKey<Attribute>> optionalKey = BuiltInRegistries.ATTRIBUTE.getResourceKey(attribute);
             if (optionalKey.isEmpty()) {
-                return;
+                continue;
             }
 
             Holder.Reference<Attribute> attributeHolder = BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(optionalKey.get());
@@ -172,35 +208,26 @@ public class ArmorEffects {
                 continue;
             }
 
-            for (AttributeModifier modifier : attributeInstance.getModifiers()) {
+            // Copy to avoid concurrent modification
+            List<AttributeModifier> modifiers = new ArrayList<>(attributeInstance.getModifiers());
+            for (AttributeModifier modifier : modifiers) {
                 ResourceLocation id = modifier.id();
-                if (id.getNamespace().equals(Zauberei.MODID)) {
+                if (id != null && Zauberei.MODID.equals(id.getNamespace())) {
                     attributeInstance.removeModifier(modifier);
-
                 }
             }
         }
     }
 
     private static Holder.Reference<Attribute> getAttributeHolder(String attributeName) {
-        ResourceLocation attributeLoc = tryMakeResourceLocation(attributeName);
-        if (attributeLoc == null) {
-            return null;
-        }
-
-        ResourceLocation loc;
-        try {
-            loc = ResourceLocation.parse(attributeName);
-        } catch (Exception e) {
-            return null;
-        }
+        ResourceLocation loc = tryMakeResourceLocation(attributeName);
+        if (loc == null) return null;
 
         Attribute attribute = BuiltInRegistries.ATTRIBUTE.get(loc);
+        if (attribute == null) return null;
 
         Optional<ResourceKey<Attribute>> optionalKey = BuiltInRegistries.ATTRIBUTE.getResourceKey(attribute);
-        if (optionalKey.isEmpty()) {
-            return null;
-        }
+        if (optionalKey.isEmpty()) return null;
 
         return BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(optionalKey.get());
     }
@@ -215,11 +242,11 @@ public class ArmorEffects {
         return ResourceLocation.fromNamespaceAndPath(Zauberei.MODID, path);
     }
 
-
     private static void applySetEffects(Player player, ArmorSetData.PartData partData) {
         if (partData.getEffects() == null) {
             return;
         }
+
         for (ArmorSetData.EffectData effectData : partData.getEffects()) {
             ResourceLocation effectLoc = tryMakeResourceLocation(effectData.getEffect());
             if (effectLoc == null) {
@@ -228,26 +255,28 @@ public class ArmorEffects {
 
             MobEffect mobEffect = BuiltInRegistries.MOB_EFFECT.get(effectLoc);
             if (mobEffect == null) {
-                return;
+                continue;
             }
-            int duration = 200;
+
+            int duration = 200; // 10 seconds
             int amplifier = effectData.getAmplifier();
 
             Optional<ResourceKey<MobEffect>> optionalKey = BuiltInRegistries.MOB_EFFECT.getResourceKey(mobEffect);
+            if (optionalKey.isEmpty()) {
+                continue;
+            }
             Holder.Reference<MobEffect> effectHolder = BuiltInRegistries.MOB_EFFECT.getHolderOrThrow(optionalKey.get());
 
             player.addEffect(new MobEffectInstance(effectHolder, duration, amplifier, false, false, true));
         }
     }
 
-    private static ResourceLocation tryMakeResourceLocation(String effectName) {
-        if (!effectName.contains(":")) {
-            effectName = "minecraft:" + effectName;
-        }
+    private static ResourceLocation tryMakeResourceLocation(String name) {
+        if (name == null) return null;
+        String s = name.contains(":") ? name : "minecraft:" + name;
         try {
-            return ResourceLocation.parse(effectName);
+            return ResourceLocation.parse(s);
         } catch (Exception e) {
-            Zauberei.LOGGER.error("Invalid effect name: " + effectName);
             return null;
         }
     }

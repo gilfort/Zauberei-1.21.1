@@ -8,55 +8,34 @@ import java.util.stream.Collectors;
 
 public class ArmorSetDataRegistry {
 
-
-    // Hier werden alle Daten gesammelt
+    // Key format: "major:year:namespace:tagpath"
+    // Example:   "naturalist:3:zauberei:magiccloth_armor"
     private static final Map<String, ArmorSetData> DATA_MAP = new HashMap<>();
 
-    public static void clear(){
+    public static void clear() {
         DATA_MAP.clear();
     }
 
-    // Der Reload Listener füllt diese Map nach dem apply()
-    public static void put(String major, int year, String armorMaterial, ArmorSetData data) {
-        String key = major + ":" + year + ":" + armorMaterial;
+    public static void put(String major, int year, String tag, ArmorSetData data) {
+        String key = makeKey(major, year, tag);
         DATA_MAP.put(key, data);
     }
 
-    public static ArmorSetData getData(String major, int year, String armorMaterial) {
-        String key = major + ":" + year + ":" + armorMaterial;
+    public static ArmorSetData getData(String major, int year, String tag) {
+        String key = makeKey(major, year, tag);
         return DATA_MAP.get(key);
     }
 
-    // Test-/Debug-Methode
-    public static void debugPrintData(String major, int year, String material) {
-        ArmorSetData data = getData(major, year, material);
-        if (data == null) {
-            System.out.println("No data found for " + major + ", " + year + ", " + material);
-            return;
-        }
-
-        // Durch alle Parts iterieren
-        data.getParts().forEach((partKey, partData) -> {
-            System.out.println("Part: " + partKey);
-
-            System.out.println("  Effects:");
-            if (partData.getEffects() != null) {
-                for (ArmorSetData.EffectData effect : partData.getEffects()) {
-                    System.out.println("    - " + effect.getEffect() + " (Amplifier: " + effect.getAmplifier() + ")");
-                }
-            }
-
-            System.out.println("  Attributes:");
-            if (partData.getAttributes() != null) {
-                partData.getAttributes().forEach((attrKey, value) ->
-                        System.out.println("    - " + attrKey + " = " + value)
-                );
-            }
-        });
-    }
-
-    private static String makeKey(String major, int year, String material) {
-        return major + ":" + year + ":" + material;
+    /**
+     * Returns all registered tag strings for a given major/year.
+     * Example: {"zauberei:magiccloth_armor", "arsnouveau:tier2armor"}
+     */
+    public static Set<String> getRegisteredTags(String major, int year) {
+        String prefix = major + ":" + year + ":";
+        return DATA_MAP.keySet().stream()
+                .filter(k -> k.startsWith(prefix))
+                .map(k -> k.substring(prefix.length()))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     public static Set<String> getMajors() {
@@ -67,4 +46,7 @@ public class ArmorSetDataRegistry {
         );
     }
 
+    private static String makeKey(String major, int year, String tag) {
+        return major + ":" + year + ":" + tag;
+    }
 }

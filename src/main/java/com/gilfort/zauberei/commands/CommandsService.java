@@ -56,7 +56,7 @@ public class CommandsService {
             if (st == null) return 0;
             Optional<CommandWithPos> next = findMatchingCommand(player, st);
             src.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
-                    "tier=" + st.tier + " next=" + st.nextInTicks + " tags=" + st.activeTags +
+                    "tier=" + st.tier + "/ next=" + st.nextInTicks/1200 +" Minuten /" + " tags=" + st.activeTags +
                             " nextCmd=" + next.map(c -> c.command).orElse("<none>")), false);
             return 1;
         }));
@@ -109,7 +109,6 @@ public class CommandsService {
         GwState state = states.get(player.getUUID());
         if (state == null) return;
         updateState(player, state);
-        state.nextInTicks = Math.min(state.nextInTicks, 40); // trigger soon
     }
 
     @SubscribeEvent

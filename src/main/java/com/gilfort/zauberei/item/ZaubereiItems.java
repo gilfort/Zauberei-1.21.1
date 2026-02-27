@@ -19,12 +19,6 @@ public class ZaubereiItems {
     //setting up classless items
     public static final DeferredItem<Item> MAGICCLOTH = ITEMS.register("magiccloth",
             () -> new Item(new Item.Properties()));
-//    public static final DeferredItem<Item> BLUE_GEM = ITEMS.register("blue_gem",
-//            () -> new Item(new Item.Properties()));
-
-    //setting up special itemclasses
-//    public static final DeferredItem<Item> WAND = ITEMS.register("wand",
-//            () -> new WandItem(new Item.Properties()));
 
     public static final DeferredItem<Item> INTRODUCTIONLETTER = ITEMS.register("introductionletter",
             () -> new IntroductionLetter(new Item.Properties().stacksTo(1)));

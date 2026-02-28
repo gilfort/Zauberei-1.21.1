@@ -6,6 +6,7 @@ import com.gilfort.zauberei.item.armorbonus.ArmorSetDataRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -19,9 +20,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,30 +34,96 @@ import java.util.Set;
  * Uses NeoForge's ItemTooltipEvent to display set bonuses on ANY ArmorItem,
  * not just MagicclothArmorItem. This enables tooltips on vanilla and modded armor.
  *
- * Only shows tooltip content if the item actually belongs to a registered set tag.
- * Items with no set definition receive no tooltip additions at all.
+ * <h3>Pagination (Issue #17)</h3>
+ * When an item belongs to multiple sets simultaneously (e.g. via broad tags
+ * like {@code c:armors}), only ONE set is shown at a time. The player can
+ * hold SHIFT and scroll the mouse wheel to browse through all matching sets.
+ * If only one set matches, behavior is identical to the non-paginated version.
  *
  * @see ArmorEffects — writes MAJOR/YEAR DataComponents to all worn ArmorItems
  * @see ArmorSetDataRegistry — provides set definitions per major/year/tag
- * @see <a href="https://github.com/gilfort/Zauberei-1.21.1/issues/16">Issue #16</a>
+ * @see <a href="https://github.com/gilfort/Zauberei-1.21.1/issues/17">Issue #17</a>
  */
 @OnlyIn(Dist.CLIENT)
 public class ArmorSetTooltipHandler {
 
+    // ─── Pagination State ────────────────────────────────────────────────
+    // These are static because the tooltip event fires per-frame and has no
+    // persistent context. We track which "page" (= which set) the player is
+    // currently viewing, and reset the page when they hover a different item.
+
+    /** Index of the currently displayed set (0-based). */
+    private static int currentSetPage = 0;
+
+    /** The last item the player hovered — used to detect item changes and reset the page. */
+    private static ItemStack lastHoveredStack = ItemStack.EMPTY;
+
+    // ─── Registration ────────────────────────────────────────────────────
+
     /**
-     * Register this handler on the NeoForge event bus.
-     * Call from ClientModEvents.onClientSetup().
+     * Register BOTH event listeners on the NeoForge event bus:
+     * <ol>
+     *   <li>{@link ItemTooltipEvent} — renders the tooltip content</li>
+     *   <li>{@link InputEvent.MouseScrollingEvent} — handles SHIFT+scroll pagination</li>
+     * </ol>
+     * Call from {@code ClientModEvents.onClientSetup()}.
      */
     public static void register() {
         NeoForge.EVENT_BUS.addListener(ArmorSetTooltipHandler::onItemTooltip);
+        NeoForge.EVENT_BUS.addListener(ArmorSetTooltipHandler::onMouseScroll);
     }
+
+    // ─── Scroll Handler ──────────────────────────────────────────────────
+
+    /**
+     * Listens for mouse scroll events while SHIFT is held inside a container screen.
+     * Increments / decrements {@link #currentSetPage} and consumes the event
+     * so the inventory does not scroll simultaneously.
+     *
+     * <p>The actual clamping/wrapping of the page index happens in
+     * {@link #onItemTooltip}, because only there do we know how many
+     * sets actually match the currently hovered item.</p>
+     */
+/**
+ * Listens for mouse scroll events INSIDE screens (inventory, chest, creative, …).
+ * Uses {@link ScreenEvent.MouseScrolled.Pre} which fires before the screen
+ * processes the scroll — allowing us to cancel it and prevent inventory scrolling.
+ *
+ * <p>Only reacts when SHIFT is held and the current screen is a container screen.</p>
+ */
+public static void onMouseScroll(ScreenEvent.MouseScrolled.Pre event) {
+    // Only react when SHIFT is held
+    if (!Screen.hasShiftDown()) return;
+
+    // Only inside container screens (inventory, chest, creative, …)
+    if (!(event.getScreen() instanceof AbstractContainerScreen<?>)) return;
+
+    // Scroll direction: up (positive) = previous page, down (negative) = next page
+    if (event.getScrollDeltaY() > 0) {
+        currentSetPage--;
+    } else if (event.getScrollDeltaY() < 0) {
+        currentSetPage++;
+    }
+
+    // Consume the event so the container doesn't process the scroll
+    event.setCanceled(true);
+}
+
+
+// ─── Tooltip Handler ─────────────────────────────────────────────────
 
     /**
      * Fires for every item tooltip.
-     * Guards:
-     *   1. Only ArmorItems
-     *   2. Only items that belong to at least one registered set tag
-     *   3. SHIFT-to-reveal
+     * <p>Guards:</p>
+     * <ol>
+     *   <li>Only ArmorItems</li>
+     *   <li>Only items that belong to at least one registered set tag</li>
+     *   <li>SHIFT-to-reveal</li>
+     * </ol>
+     *
+     * <p>When multiple sets match, only the set at index {@link #currentSetPage}
+     * is rendered. The page wraps around (scrolling past the last set goes
+     * back to the first, and vice versa).</p>
      */
     public static void onItemTooltip(ItemTooltipEvent event) {
         ItemStack stack = event.getItemStack();
@@ -62,10 +132,13 @@ public class ArmorSetTooltipHandler {
         if (!(stack.getItem() instanceof ArmorItem)) return;
 
         // Guard 2: Does this item belong to ANY registered set tag?
-        // If not → show absolutely nothing, don't pollute the tooltip.
         if (!ArmorSetDataRegistry.isItemInAnyRegisteredTag(stack)) return;
 
-        // From here on we know: this item has a potential set bonus.
+        // ── Page reset on item change ────────────────────────────────────
+        if (!ItemStack.isSameItem(stack, lastHoveredStack)) {
+            currentSetPage = 0;
+            lastHoveredStack = stack.copy();
+        }
 
         // Guard 3: SHIFT-to-reveal
         if (!Screen.hasShiftDown()) {
@@ -85,7 +158,6 @@ public class ArmorSetTooltipHandler {
         Integer yearObj = stack.has(yearType) ? stack.get(yearType) : null;
 
         // Fallback: read from currently worn armor stacks
-        // (ArmorEffects writes MAJOR/YEAR to all worn ArmorItems every 60 ticks)
         if (major == null || yearObj == null) {
             for (ItemStack worn : player.getArmorSlots()) {
                 if (worn.has(majorType) && worn.has(yearType)) {
@@ -96,7 +168,7 @@ public class ArmorSetTooltipHandler {
             }
         }
 
-        // Still no data: player is wearing nothing at all → generic hint
+        // Still no data → generic hint
         if (major == null || yearObj == null) {
             event.getToolTip().add(Component.literal("[Set Bonus available — equip to see details]")
                     .withStyle(ChatFormatting.GRAY));
@@ -108,14 +180,15 @@ public class ArmorSetTooltipHandler {
         // --- Lookup registered tags for this major/year ---
         Set<String> registeredTags = ArmorSetDataRegistry.getRegisteredTags(major.toLowerCase(), year);
         if (registeredTags.isEmpty()) {
-            // Item is in a tag globally, but not for this player's major/year
             event.getToolTip().add(Component.literal("[No set bonus for your current Major]")
                     .withStyle(ChatFormatting.GRAY));
             return;
         }
 
-        boolean printedAny = false;
-
+        // ── Collect MATCHING tags ────────────────────────────────────────
+        // Filter to only those tags that this specific item actually belongs to.
+        // This is the list we paginate over.
+        List<String> matchingTags = new ArrayList<>();
         for (String tagString : registeredTags) {
             ResourceLocation tagLoc;
             try {
@@ -123,125 +196,160 @@ public class ArmorSetTooltipHandler {
             } catch (Exception e) {
                 continue;
             }
-
             TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLoc);
-            if (!stack.is(tagKey)) continue;
-
-            // Count worn pieces
-            int wornParts = 0;
-            for (ItemStack armorStack : player.getArmorSlots()) {
-                if (!armorStack.isEmpty() && armorStack.is(tagKey)) {
-                    wornParts++;
-                }
-            }
-
-            ArmorSetData data = ArmorSetDataRegistry.getData(major.toLowerCase(), year, tagString);
-            if (data == null || data.getParts() == null) continue;
-
-            // Determine the maximum part threshold defined in the set
-            int maxParts = data.getParts().keySet().stream()
-                    .map(k -> k.replace("Part", ""))
-                    .mapToInt(s -> {
-                        try { return Integer.parseInt(s); } catch (NumberFormatException e) { return 0; }
-                    })
-                    .max()
-                    .orElse(0);
-
-            // Header with progress: [Set Bonus 2/4]
-            event.getToolTip().add(Component.literal("[Set Bonus " + wornParts + "/" + maxParts + "]")
-                    .withStyle(ChatFormatting.AQUA));
-
-            ArmorSetData.PartData partData = data.getParts().get(wornParts + "Part");
-
-            // No bonus for this exact count → show next threshold hint
-            if (partData == null) {
-                int nextThreshold = -1;
-                for (int i = wornParts + 1; i <= maxParts; i++) {
-                    if (data.getParts().containsKey(i + "Part")) {
-                        nextThreshold = i;
-                        break;
-                    }
-                }
-                if (nextThreshold > 0) {
-                    event.getToolTip().add(Component.literal(
-                                    "  Equip " + (nextThreshold - wornParts) + " more piece(s) for a bonus")
-                            .withStyle(ChatFormatting.GRAY));
-                }
-                printedAny = true;
-                continue;
-            }
-
-            printedAny = true;
-
-
-            // --- Render Effects ---
-            if (partData.getEffects() != null && !partData.getEffects().isEmpty()) {
-                for (ArmorSetData.EffectData effect : partData.getEffects()) {
-                    ResourceLocation effectLoc;
-                    try {
-                        effectLoc = ResourceLocation.parse(effect.getEffect());
-                    } catch (Exception e) {
-                        continue;
-                    }
-
-                    MobEffect mobEffect = BuiltInRegistries.MOB_EFFECT.get(effectLoc);
-                    if (mobEffect == null) continue;
-
-                    Component effectName = mobEffect.getDisplayName();
-                    int level = effect.getAmplifier() + 1;
-                    Component levelRoman = Component.translatable("enchantment.level." + level);
-
-                    event.getToolTip().add(Component.literal("- ")
-                            .append(effectName)
-                            .append(" ")
-                            .append(levelRoman)
-                            .withStyle(ChatFormatting.DARK_PURPLE));
-                }
-            }
-
-            // --- Render Attributes ---
-            if (partData.getAttributes() != null && !partData.getAttributes().isEmpty()) {
-                event.getToolTip().add(Component.literal("[Bonus Attributes]")
-                        .withStyle(ChatFormatting.AQUA));
-
-                for (Map.Entry<String, ArmorSetData.AttributeData> attr : partData.getAttributes().entrySet()) {
-                    ResourceLocation attrLoc;
-                    try {
-                        attrLoc = ResourceLocation.parse(attr.getKey());
-                    } catch (Exception e) {
-                        continue;
-                    }
-
-                    Attribute attribute = BuiltInRegistries.ATTRIBUTE.get(attrLoc);
-                    if (attribute == null) continue;
-
-                    Component attributeName = Component.translatable(attribute.getDescriptionId());
-                    double rawValue = attr.getValue().getValue();
-                    String modifier = attr.getValue().getModifier();
-
-                    String displayValue;
-                    if (modifier != null && (modifier.equalsIgnoreCase("multiply")
-                            || modifier.equalsIgnoreCase("multiply_base")
-                            || modifier.equalsIgnoreCase("multiply_total"))) {
-                        displayValue = String.format("+%.0f%%", rawValue * 100);
-                    } else {
-                        displayValue = (rawValue == (long) rawValue)
-                                ? String.format("+%d", (long) rawValue)
-                                : String.format("+%.2f", rawValue);
-                    }
-
-                    event.getToolTip().add(attributeName.copy()
-                            .append(" ")
-                            .append(Component.literal(displayValue))
-                            .withStyle(ChatFormatting.GREEN));
-                }
+            if (stack.is(tagKey)) {
+                matchingTags.add(tagString);
             }
         }
 
-        if (!printedAny) {
-            // Item is in a tag for this major/year, but player wears 0 matching pieces
+        if (matchingTags.isEmpty()) {
             event.getToolTip().add(Component.literal("(Equip pieces to activate set bonus)")
                     .withStyle(ChatFormatting.GRAY));
+            return;
+        }
+
+        // ── Clamp page index (wrap around) ───────────────────────────────
+        // Modular arithmetic ensures wrapping in both directions:
+        //   scrolling past last  → goes to first
+        //   scrolling before first → goes to last
+        currentSetPage = ((currentSetPage % matchingTags.size()) + matchingTags.size()) % matchingTags.size();
+
+        // ── Render the SINGLE selected set ───────────────────────────────
+        String selectedTag = matchingTags.get(currentSetPage);
+        renderSetTooltip(event, player, major, year, selectedTag, matchingTags.size());
+    }
+
+    // ─── Single-Set Rendering ────────────────────────────────────────────
+
+    /**
+     * Renders the tooltip for exactly one set. Extracted from the old for-loop
+     * so that pagination can call it for just the selected set.
+     *
+     * @param event         the tooltip event to append lines to
+     * @param player        the local player
+     * @param major         the player's current major (lowercase)
+     * @param year          the player's current year
+     * @param tagString     the tag string of the set to render
+     * @param totalSets     total number of matching sets (for the pagination header)
+     */
+    private static void renderSetTooltip(ItemTooltipEvent event, Player player,
+                                         String major, int year,
+                                         String tagString, int totalSets) {
+
+        ResourceLocation tagLoc = ResourceLocation.parse(tagString);
+        TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLoc);
+
+        // Count worn pieces for this tag
+        int wornParts = 0;
+        for (ItemStack armorStack : player.getArmorSlots()) {
+            if (!armorStack.isEmpty() && armorStack.is(tagKey)) {
+                wornParts++;
+            }
+        }
+
+        ArmorSetData data = ArmorSetDataRegistry.getData(major.toLowerCase(), year, tagString);
+        if (data == null || data.getParts() == null) return;
+
+        // Determine the maximum part threshold defined in the set
+        int maxParts = data.getParts().keySet().stream()
+                .map(k -> k.replace("Part", ""))
+                .mapToInt(s -> {
+                    try { return Integer.parseInt(s); } catch (NumberFormatException e) { return 0; }
+                })
+                .max()
+                .orElse(0);
+
+        // ── Header line ──────────────────────────────────────────────────
+        // Single set:    [Set Bonus 2/4]
+        // Multiple sets: [Set Bonus 2/4]  ◄ 1/3 — Scroll ►
+        String header = "[Set Bonus " + wornParts + "/" + maxParts + "]";
+        if (totalSets > 1) {
+            header += "  \u25C4 " + (currentSetPage + 1) + "/" + totalSets + " \u2014 Scroll \u25BA";
+        }
+        event.getToolTip().add(Component.literal(header)
+                .withStyle(ChatFormatting.AQUA));
+
+        // ── Part data for current worn count ─────────────────────────────
+        ArmorSetData.PartData partData = data.getParts().get(wornParts + "Part");
+
+        if (partData == null) {
+            // No bonus for this exact count → show next threshold hint
+            int nextThreshold = -1;
+            for (int i = wornParts + 1; i <= maxParts; i++) {
+                if (data.getParts().containsKey(i + "Part")) {
+                    nextThreshold = i;
+                    break;
+                }
+            }
+            if (nextThreshold > 0) {
+                event.getToolTip().add(Component.literal(
+                                "  Equip " + (nextThreshold - wornParts) + " more piece(s) for a bonus")
+                        .withStyle(ChatFormatting.GRAY));
+            }
+            return;
+        }
+
+        // --- Render Effects ---
+        if (partData.getEffects() != null && !partData.getEffects().isEmpty()) {
+            for (ArmorSetData.EffectData effect : partData.getEffects()) {
+                ResourceLocation effectLoc;
+                try {
+                    effectLoc = ResourceLocation.parse(effect.getEffect());
+                } catch (Exception e) {
+                    continue;
+                }
+
+                MobEffect mobEffect = BuiltInRegistries.MOB_EFFECT.get(effectLoc);
+                if (mobEffect == null) continue;
+
+                Component effectName = mobEffect.getDisplayName();
+                int level = effect.getAmplifier() + 1;
+                Component levelRoman = Component.translatable("enchantment.level." + level);
+
+                event.getToolTip().add(Component.literal("- ")
+                        .append(effectName)
+                        .append(" ")
+                        .append(levelRoman)
+                        .withStyle(ChatFormatting.DARK_PURPLE));
+            }
+        }
+
+        // --- Render Attributes ---
+        if (partData.getAttributes() != null && !partData.getAttributes().isEmpty()) {
+            event.getToolTip().add(Component.literal("[Bonus Attributes]")
+                    .withStyle(ChatFormatting.AQUA));
+
+            for (Map.Entry<String, ArmorSetData.AttributeData> attr : partData.getAttributes().entrySet()) {
+                ResourceLocation attrLoc;
+                try {
+                    attrLoc = ResourceLocation.parse(attr.getKey());
+                } catch (Exception e) {
+                    continue;
+                }
+
+                Attribute attribute = BuiltInRegistries.ATTRIBUTE.get(attrLoc);
+                if (attribute == null) continue;
+
+                Component attributeName = Component.translatable(attribute.getDescriptionId());
+                double rawValue = attr.getValue().getValue();
+                String modifier = attr.getValue().getModifier();
+
+                String displayValue;
+                if (modifier != null && (modifier.equalsIgnoreCase("multiply")
+                        || modifier.equalsIgnoreCase("multiply_base")
+                        || modifier.equalsIgnoreCase("multiply_total"))) {
+                    displayValue = String.format("+%.0f%%", rawValue * 100);
+                } else {
+                    displayValue = (rawValue == (long) rawValue)
+                            ? String.format("+%d", (long) rawValue)
+                            : String.format("+%.2f", rawValue);
+                }
+
+                event.getToolTip().add(attributeName.copy()
+                        .append(" ")
+                        .append(Component.literal(displayValue))
+                        .withStyle(ChatFormatting.GREEN));
+            }
         }
     }
 }

@@ -4,6 +4,8 @@ import com.hollingsworth.arsnouveau.api.perk.ITickablePerk;
 import com.hollingsworth.arsnouveau.api.perk.PerkInstance;
 import com.hollingsworth.arsnouveau.api.util.PerkUtil;
 import com.hollingsworth.arsnouveau.common.perk.RepairingPerk;
+import com.hollingsworth.arsnouveau.setup.registry.DataComponentRegistry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -11,6 +13,8 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
+
+import java.util.List;
 
 public class ArsNouveauPerkHelper {
 
@@ -26,6 +30,13 @@ public class ArsNouveauPerkHelper {
             if (instance.getPerk() instanceof ITickablePerk tickable) {
                 tickable.tick(stack, level, entity, instance);
             }
+        }
+    }
+
+    public static void appendPerkTooltip(ItemStack stack, List<Component> tooltip) {
+        var data = stack.get(DataComponentRegistry.ARMOR_PERKS);
+        if (data != null) {
+            data.appendPerkTooltip(tooltip, stack);
         }
     }
 

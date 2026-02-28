@@ -76,6 +76,8 @@ public class Zauberei
 
         if (ModList.get().isLoaded("ars_nouveau")) {
             com.gilfort.zauberei.compat.ArsNouveauCompat.init(modEventBus);
+        } else {
+            LOGGER.info("[Zauberei] Ars Nouveau not found, skipping compatibility setup.");
         }
 
         // Register ourselves for server and other game events we are interested in.

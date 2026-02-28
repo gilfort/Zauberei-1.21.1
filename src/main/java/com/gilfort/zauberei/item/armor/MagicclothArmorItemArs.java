@@ -1,12 +1,16 @@
 package com.gilfort.zauberei.item.armor;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
 import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class MagicclothArmorItemArs extends MagicclothArmorItem {
 
@@ -35,5 +39,14 @@ public class MagicclothArmorItemArs extends MagicclothArmorItem {
                     .applyPerkModifiers(modifiers, stack, this.type);
         }
         return modifiers;
+    }
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+                                @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        if (ModList.get().isLoaded("ars_nouveau")) {
+            com.gilfort.zauberei.compat.ArsNouveauPerkHelper
+                    .appendPerkTooltip(stack, tooltip);
+        }
     }
 }

@@ -32,30 +32,35 @@ public class ZaubereiItemTagProvider extends ItemTagsProvider {
                         ZaubereiItems.MAGICCLOTH_LEGGINGS_ALT.get(),
                         ZaubereiItems.MAGICCLOTH_BOOTS.get(),
                         ZaubereiItems.MAGICCLOTH_BOOTS_ALT.get()
+
                 );
 
         tag(ItemTags.create(ResourceLocation.fromNamespaceAndPath("minecraft", "enchantable/helmet")))
                 .add(
                         ZaubereiItems.MAGICCLOTH_HELMET.get(),
                         ZaubereiItems.MAGICCLOTH_HELMET_ALT.get()
+
                 );
 
         tag(ItemTags.create(ResourceLocation.fromNamespaceAndPath("minecraft", "enchantable/chestplate")))
                 .add(
                         ZaubereiItems.MAGICCLOTH_CHESTPLATE.get(),
                         ZaubereiItems.MAGICCLOTH_CHESTPLATE_ALT.get()
+
                 );
 
         tag(ItemTags.create(ResourceLocation.fromNamespaceAndPath("minecraft", "enchantable/leggings")))
                 .add(
                         ZaubereiItems.MAGICCLOTH_LEGGINGS.get(),
                         ZaubereiItems.MAGICCLOTH_LEGGINGS_ALT.get()
+
                 );
 
         tag(ItemTags.create(ResourceLocation.fromNamespaceAndPath("minecraft", "enchantable/boots")))
                 .add(
                         ZaubereiItems.MAGICCLOTH_BOOTS.get(),
                         ZaubereiItems.MAGICCLOTH_BOOTS_ALT.get()
+
                 );
 
         tag(ZaubereiTags.Items.TRANSFORMABLE_ITEMS);

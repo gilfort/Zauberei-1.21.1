@@ -8,6 +8,10 @@
     "zauberei:magiccloth_leggings",
     "zauberei:magiccloth_leggings_alt",
     "zauberei:magiccloth_boots",
-    "zauberei:magiccloth_boots_alt"
+    "zauberei:magiccloth_boots_alt",
+    "zauberei:magiccloth_helmet_perks",
+    "zauberei:magiccloth_chestplate_perks",
+    "zauberei:magiccloth_leggings_perks",
+    "zauberei:magiccloth_boots_perks"
   ]
 }

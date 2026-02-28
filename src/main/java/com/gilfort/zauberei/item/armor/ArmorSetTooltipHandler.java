@@ -269,6 +269,12 @@ public static void onMouseScroll(ScreenEvent.MouseScrolled.Pre event) {
         event.getToolTip().add(Component.literal(header)
                 .withStyle(ChatFormatting.AQUA));
 
+        // ── Set name line  ──────────────────────────────────────────
+        String setName = resolveSetName(data, tagString);
+        event.getToolTip().add(Component.literal("[Set: " + setName + "]")
+                .withStyle(ChatFormatting.GOLD));
+
+
         // ── Part data for current worn count ─────────────────────────────
         ArmorSetData.PartData partData = data.getParts().get(wornParts + "Part");
 
@@ -352,4 +358,53 @@ public static void onMouseScroll(ScreenEvent.MouseScrolled.Pre event) {
             }
         }
     }
+
+    // ─── Set Name Resolution ─────────────────────────────────────────────
+
+    /**
+     * Resolves a human-readable set name from an {@link ArmorSetData} and its tag.
+     *
+     * <p>Resolution order:</p>
+     * <ol>
+     *   <li>{@code data.getDisplayName()} — explicit name from JSON (e.g. "Magiccloth Robes")</li>
+     *   <li>Fallback: derive from tag path — strips common suffixes like {@code _armor},
+     *       replaces underscores with spaces, and title-cases each word.
+     *       Example: {@code "zauberei:magiccloth_armor"} → {@code "Magiccloth"}</li>
+     * </ol>
+     *
+     * @param data      the set data (may contain a displayName)
+     * @param tagString the full tag string, e.g. "zauberei:magiccloth_armor"
+     * @return a formatted display name, never null
+     */
+    private static String resolveSetName(ArmorSetData data, String tagString) {
+        // Priority 1: explicit displayName from JSON
+        if (data != null && data.getDisplayName() != null && !data.getDisplayName().isBlank()) {
+            return data.getDisplayName();
+        }
+
+        // Priority 2: derive from tag path
+        try {
+            ResourceLocation tagLoc = ResourceLocation.parse(tagString);
+            String path = tagLoc.getPath(); // e.g. "magiccloth_armor"
+
+            // Strip common armor-related suffixes
+            path = path.replaceAll("_(armou?rs?|set|equipment|gear)$", "");
+
+            // Split by underscore, capitalize each word
+            String[] words = path.split("_");
+            StringBuilder sb = new StringBuilder();
+            for (String word : words) {
+                if (!word.isEmpty()) {
+                    if (sb.length() > 0) sb.append(" ");
+                    sb.append(Character.toUpperCase(word.charAt(0)));
+                    if (word.length() > 1) sb.append(word.substring(1));
+                }
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return tagString; // absolute fallback: raw tag string
+        }
+    }
+
+
 }

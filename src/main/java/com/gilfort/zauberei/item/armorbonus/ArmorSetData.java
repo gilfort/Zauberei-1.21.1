@@ -6,7 +6,17 @@ import java.util.List;
 import java.util.Map;
 
 public class ArmorSetData {
+
+    private String displayName;  // ← NEU: optional, z.B. "Magiccloth"
     private Map<String, PartData> parts;
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
 
     public Map<String, PartData> getParts() {
         return parts;

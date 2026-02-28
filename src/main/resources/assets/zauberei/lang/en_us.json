@@ -14,15 +14,18 @@
 
 
   //armor
-  "item.zauberei.magiccloth_helmet": "Magiccloth Helmet",
-  "item.zauberei.magiccloth_chestplate": "Magiccloth Chestplate",
-  "item.zauberei.magiccloth_leggings": "Magiccloth Leggings",
+  "item.zauberei.magiccloth_helmet": "Magiccloth Hood",
+  "item.zauberei.magiccloth_chestplate": "Magiccloth Robe",
+  "item.zauberei.magiccloth_leggings": "Magiccloth Pants",
   "item.zauberei.magiccloth_boots": "Magiccloth Boots",
   "item.zauberei.magiccloth_helmet_alt": "Magiccloth Helmet",
   "item.zauberei.magiccloth_chestplate_alt": "Magiccloth Chestplate",
   "item.zauberei.magiccloth_leggings_alt": "Magiccloth Leggings",
   "item.zauberei.magiccloth_boots_alt": "Magiccloth Boots",
-
+  "item.zauberei.magiccloth_helmet_perks": "Magiccloth Hood",
+  "item.zauberei.magiccloth_chestplate_perks": "Magiccloth Robe",
+  "item.zauberei.magiccloth_leggings_perks": "Magiccloth Pants",
+  "item.zauberei.magiccloth_boots_perks": "Magiccloth Boots",
 
   /*
   * Thoughts and agsnoce comments

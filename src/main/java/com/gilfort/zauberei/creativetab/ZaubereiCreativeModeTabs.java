@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -47,6 +48,14 @@ public class ZaubereiCreativeModeTabs {
                             output.accept(ZaubereiItems.MAGICCLOTH_CHESTPLATE_ALT.get());
                             output.accept(ZaubereiItems.MAGICCLOTH_LEGGINGS_ALT.get());
                             output.accept(ZaubereiItems.MAGICCLOTH_BOOTS_ALT.get());
+
+                            if (ModList.get().isLoaded("ars_nouveau")) {
+                                output.accept(com.gilfort.zauberei.compat.ArsNouveauCompat.MAGICCLOTH_HELMET_ARS.get());
+                                output.accept(com.gilfort.zauberei.compat.ArsNouveauCompat.MAGICCLOTH_CHESTPLATE_ARS.get());
+                                output.accept(com.gilfort.zauberei.compat.ArsNouveauCompat.MAGICCLOTH_LEGGINGS_ARS.get());
+                                output.accept(com.gilfort.zauberei.compat.ArsNouveauCompat.MAGICCLOTH_BOOTS_ARS.get());
+                            }
+
                         }
 
                     }).build());

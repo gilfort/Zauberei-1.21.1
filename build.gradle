@@ -26,6 +26,13 @@ repositories {
             includeGroup("software.bernie.geckolib")
         }
     }
+    maven {
+        name = 'BlameJared'
+        url 'https://maven.blamejared.com'
+        content {
+            includeGroup("com.hollingsworth.ars_nouveau")
+        }
+    }
 }
 
 base {
@@ -122,6 +129,8 @@ configurations {
 dependencies {
 
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    // Ars Nouveau – optional dependency, compile-time only
+    compileOnly "com.hollingsworth.ars_nouveau:ars_nouveau-${minecraft_version}:${ars_nouveau_version}"
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

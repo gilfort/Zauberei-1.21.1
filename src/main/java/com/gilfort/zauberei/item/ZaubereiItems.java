@@ -36,6 +36,7 @@ public class ZaubereiItems {
             ()-> new MagicclothArmorItem(ArmorItem.Type.BOOTS, ItemPropertiesHelper.equipment(1)
                     .durability(ArmorItem.Type.BOOTS.getDurability(26))));
 
+
     //Alt-Versions
     public static final DeferredHolder<Item, Item> MAGICCLOTH_HELMET_ALT = ITEMS.register("magiccloth_helmet_alt",
             ()-> new MagicclothArmorItem(ArmorItem.Type.HELMET, ItemPropertiesHelper.equipment(1)

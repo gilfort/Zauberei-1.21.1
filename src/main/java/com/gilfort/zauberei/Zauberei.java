@@ -11,6 +11,7 @@ import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
 import com.gilfort.zauberei.structure.ZaubereiStructures;
 import com.gilfort.zauberei.util.ZaubereiPlayerData;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -73,6 +74,9 @@ public class Zauberei
         ComponentRegistry.register(modEventBus);
         ZaubereiPlayerData.ATTACHMENT_TYPES.register(modEventBus);
 
+        if (ModList.get().isLoaded("ars_nouveau")) {
+            com.gilfort.zauberei.compat.ArsNouveauCompat.init(modEventBus);
+        }
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (ExampleMod) to respond directly to events.

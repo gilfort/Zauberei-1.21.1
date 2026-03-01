@@ -1,5 +1,4 @@
-
-        package com.gilfort.zauberei.guis;
+package com.gilfort.zauberei.guis;
 
 import com.gilfort.zauberei.Zauberei;
 import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
@@ -38,43 +37,34 @@ import java.util.stream.Collectors;
 public class SetsManagerScreen extends Screen {
 
     // ─── Texture ─────────────────────────────────────────────────────────
-    private static final ResourceLocation BACKGROUND =
-            ResourceLocation.fromNamespaceAndPath(Zauberei.MODID, "textures/gui/configbook.png");
+    // ─── Panel colors ─────────────────────────────────────────────────────
+    private static final int PANEL_BG        = 0xFFF5F0E0; // Beige/Pergament
+    private static final int PANEL_BORDER    = 0xFF8B7355; // Warmes Braun (Rahmen)
+    private static final int PANEL_DIVIDER   = 0xFFB8A080; // Helle Trennlinie Mitte
+    private static final int PANEL_PADDING   = 10;         // Innenabstand
+    private static final int PANEL_MARGIN    = 12;         // Außenabstand zum Bildschirmrand
+    private static final int DIVIDER_WIDTH   = 4;          // Breite der Mitteltrennlinie
 
-    /** Original texture dimensions (used for UV mapping). */
-    private static final int TEX_WIDTH = 1600;
-    private static final int TEX_HEIGHT = 1024;
+    // Panel layout (computed in init())
+    private int leftPanelX, leftPanelW;
+    private int rightPanelX, rightPanelW;
+    private int panelH;
 
-    /** Target fill: the book occupies this fraction of the screen. */
-    private static final float TARGET_FILL = 0.75f;
 
-    // ─── Page area fractions (relative to texture dimensions) ────────────
-    // These define where the usable page area starts/ends as a fraction
-    // of the full texture. Derived from the configbook.png layout.
+    // Text colors — alles schwarz
+    private static final int COLOR_HEADER    = 0xFF000000; // Schwarz (war: Dark brown)
+    private static final int COLOR_TEXT      = 0xFF000000; // Schwarz (war: Dark brown text)
+    private static final int COLOR_GRAY      = 0xFF444444; // Dunkles Grau für Hints
 
-    // Left page content area (fractional)
-    private static final float LEFT_X_FRAC  = 110f / TEX_WIDTH;    // left edge of left page
-    private static final float LEFT_W_FRAC  = 580f / TEX_WIDTH;    // width of left page
-    private static final float LEFT_Y_FRAC  = 80f / TEX_HEIGHT;    // top edge
-    private static final float LEFT_H_FRAC  = 800f / TEX_HEIGHT;   // height of content area
+    // Icon/Scope-Farben — bleiben bunt
+    private static final int COLOR_SPECIFIC  = 0xFF55FF55; // Grün       ●
+    private static final int COLOR_ALL_MAJOR = 0xFF5555FF; // Blau       ●
+    private static final int COLOR_UNIVERSAL = 0xFFFFFF55; // Gelb       ●
+    private static final int COLOR_EFFECT    = 0xFF7733AA; // Lila       (Effekte)
+    private static final int COLOR_ATTRIBUTE = 0xFF338833; // Grün       (Attribute)
+    private static final int COLOR_SELECTED  = 0x44FFCC00; // Gold       (Highlight)
+    private static final int COLOR_HOVER     = 0x22FFCC00; // Gold-Hover
 
-    // Right page content area (fractional)
-    private static final float RIGHT_X_FRAC = 870f / TEX_WIDTH;    // left edge of right page
-    private static final float RIGHT_W_FRAC = 580f / TEX_WIDTH;    // width of right page
-    private static final float RIGHT_Y_FRAC = 80f / TEX_HEIGHT;    // top edge
-    private static final float RIGHT_H_FRAC = 800f / TEX_HEIGHT;   // height of content area
-
-    // ─── Scope colors ────────────────────────────────────────────────────
-    private static final int COLOR_SPECIFIC  = 0xFF55FF55;  // Green
-    private static final int COLOR_ALL_MAJOR = 0xFF5555FF;  // Blue
-    private static final int COLOR_UNIVERSAL = 0xFFFFFF55;  // Yellow (accessibility)
-    private static final int COLOR_HEADER    = 0xFF553300;  // Dark brown (book theme)
-    private static final int COLOR_TEXT      = 0xFF332200;  // Dark brown text
-    private static final int COLOR_EFFECT    = 0xFF7733AA;  // Purple for effects
-    private static final int COLOR_ATTRIBUTE = 0xFF338833;  // Green for attributes
-    private static final int COLOR_GRAY      = 0xFF888888;  // Gray hints
-    private static final int COLOR_SELECTED  = 0x44FFCC00;  // Selection highlight (translucent gold)
-    private static final int COLOR_HOVER     = 0x22FFCC00;  // Hover highlight
 
     // ─── Dynamic layout (computed in init()) ─────────────────────────────
     private int renderWidth, renderHeight;
@@ -154,62 +144,71 @@ public class SetsManagerScreen extends Screen {
     protected void init() {
         super.init();
 
-        // ── Dynamic scaling: 75% of screen, maintain aspect ratio ────────
-        float aspectRatio = (float) TEX_WIDTH / TEX_HEIGHT;
+        int margin = PANEL_MARGIN;
+        int divider = DIVIDER_WIDTH;
+        int totalW = this.width - 2 * margin;
+        int totalH = this.height - 2 * margin;
 
-        int maxW = (int) (this.width * TARGET_FILL);
-        int maxH = (int) (this.height * TARGET_FILL);
+        // Buttons am unteren Rand reservieren
+        int buttonAreaH = 28;
+        int contentH = totalH - buttonAreaH - 8;
 
-        if (maxW / aspectRatio <= maxH) {
-            renderWidth = maxW;
-            renderHeight = (int) (maxW / aspectRatio);
-        } else {
-            renderHeight = maxH;
-            renderWidth = (int) (maxH * aspectRatio);
-        }
+        // Linke Seite: 35% der Breite
+        int leftPanelW = (int)(totalW * 0.35f) - divider / 2;
+        int leftPanelX = margin;
+        int leftPanelY = margin;
 
-        guiLeft = (this.width - renderWidth) / 2;
-        guiTop = (this.height - renderHeight) / 2;
+        // Rechte Seite: 65% der Breite
+        int rightPanelX = margin + leftPanelW + divider;
+        int rightPanelW = totalW - leftPanelW - divider;
+        int rightPanelY = margin;
 
-        // ── Compute page areas from fractions ────────────────────────────
-        leftX = guiLeft + (int) (LEFT_X_FRAC * renderWidth);
-        leftY = guiTop + (int) (LEFT_Y_FRAC * renderHeight);
-        leftW = (int) (LEFT_W_FRAC * renderWidth);
-        leftH = (int) (LEFT_H_FRAC * renderHeight);
+        // Speichern für renderBackground
+        guiLeft   = leftPanelX;
+        guiTop    = leftPanelY;
+        renderWidth  = totalW;
+        renderHeight = contentH;
 
-        rightX = guiLeft + (int) (RIGHT_X_FRAC * renderWidth);
-        rightY = guiTop + (int) (RIGHT_Y_FRAC * renderHeight);
-        rightW = (int) (RIGHT_W_FRAC * renderWidth);
-        rightH = (int) (RIGHT_H_FRAC * renderHeight);
+        // Content-Bereiche (mit Padding)
+        leftX = leftPanelX + PANEL_PADDING;
+        leftY = leftPanelY + PANEL_PADDING;
+        leftW = leftPanelW - 2 * PANEL_PADDING;
+        leftH = contentH - 2 * PANEL_PADDING;
 
-        // ── Line height scales with book size ────────────────────────────
-        lineHeight = Math.max(10, renderHeight / 25);
-        maxLinesLeft = leftH / lineHeight;
+        rightX = rightPanelX + PANEL_PADDING;
+        rightY = rightPanelY + PANEL_PADDING;
+        rightW = rightPanelW - 2 * PANEL_PADDING;
+        rightH = contentH - 2 * PANEL_PADDING;
+
+        // Für renderBackground speichern
+        this.leftPanelX  = leftPanelX;
+        this.leftPanelW  = leftPanelW;
+        this.rightPanelX = rightPanelX;
+        this.rightPanelW = rightPanelW;
+        this.panelH      = contentH;
+
+        lineHeight = Math.max(10, this.height / 40);
+        maxLinesLeft  = leftH  / lineHeight;
         maxLinesRight = rightH / lineHeight;
 
-        // ── Build list data ──────────────────────────────────────────────
         buildListEntries();
 
-        // ── Buttons ──────────────────────────────────────────────────────
-        int buttonW = 60;
+        // Buttons zentriert unten
+        int buttonW = 70;
         int buttonH = 20;
-        int buttonY = guiTop + renderHeight - 35;
-        int buttonSpacing = 10;
+        int buttonY = margin + contentH + 8;
+        int buttonSpacing = 12;
         int totalButtonsW = buttonW * 3 + buttonSpacing * 2;
         int buttonStartX = (this.width - totalButtonsW) / 2;
 
         addRenderableWidget(Button.builder(Component.literal("Reload"), btn -> onReload())
-                .bounds(buttonStartX, buttonY, buttonW, buttonH)
-                .build());
-
+                .bounds(buttonStartX, buttonY, buttonW, buttonH).build());
         addRenderableWidget(Button.builder(Component.literal("Validate"), btn -> onValidate())
-                .bounds(buttonStartX + buttonW + buttonSpacing, buttonY, buttonW, buttonH)
-                .build());
-
+                .bounds(buttonStartX + buttonW + buttonSpacing, buttonY, buttonW, buttonH).build());
         addRenderableWidget(Button.builder(Component.literal("Close"), btn -> onClose())
-                .bounds(buttonStartX + (buttonW + buttonSpacing) * 2, buttonY, buttonW, buttonH)
-                .build());
+                .bounds(buttonStartX + (buttonW + buttonSpacing) * 2, buttonY, buttonW, buttonH).build());
     }
+
 
     // ─── Data building ───────────────────────────────────────────────────
 
@@ -272,39 +271,18 @@ public class SetsManagerScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        // Dim background
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+        super.render(graphics, mouseX, mouseY, partialTick);
 
-        // ── Draw book texture (stretched to renderWidth × renderHeight) ──
-        graphics.blit(BACKGROUND,
-                guiLeft, guiTop,                    // screen position
-                renderWidth, renderHeight,          // render size
-                0, 0,                               // UV start
-                TEX_WIDTH, TEX_HEIGHT,              // UV size
-                TEX_WIDTH, TEX_HEIGHT);             // texture file size
-
-        // ── Draw left page (set list) ────────────────────────────────────
         renderLeftPage(graphics, mouseX, mouseY);
 
-        // ── Draw right page (details or validation) ──────────────────────
         if (showingValidation && validationResults != null) {
             renderValidationPage(graphics);
         } else {
             renderRightPage(graphics);
         }
-
-        // ── Title on top of book ─────────────────────────────────────────
-        Component title = Component.literal("Set Effects Manager")
-                .withStyle(s -> s.withBold(true));
-        int titleWidth = this.font.width(title);
-        graphics.drawString(this.font, title,
-                guiLeft + renderWidth / 2 - titleWidth / 2,
-                guiTop + (int) (30f / TEX_HEIGHT * renderHeight),
-                COLOR_HEADER, false);
-
-        // ── Render widgets (buttons) on top ──────────────────────────────
-        super.render(graphics, mouseX, mouseY, partialTick);
     }
+
+
 
     // ─── Left page: Set list ─────────────────────────────────────────────
 
@@ -351,13 +329,18 @@ public class SetsManagerScreen extends Screen {
                 text += "...";
             }
 
-            boolean bold = entry.type() == ListEntry.EntryType.TAG_HEADER;
-            if (bold) {
+            if (entry.type() == ListEntry.EntryType.TAG_HEADER) {
+                // Tag-Header: schwarz + bold
                 graphics.drawString(this.font,
                         Component.literal(text).withStyle(s -> s.withBold(true)),
-                        leftX + 3, entryY, entry.getColor(), false);
+                        leftX + 3, entryY, COLOR_HEADER, false);
             } else {
-                graphics.drawString(this.font, text, leftX + 3, entryY, entry.getColor(), false);
+                // Scope-Entry: farbiger Bullet ● + schwarzer Text dahinter
+                String bullet = "\u25CF ";
+                String label = entry.scopeLabel(); // direkt aus dem Record, kein String-Fummel
+                graphics.drawString(this.font, bullet, leftX + 8, entryY, entry.getColor(), false);
+                int bulletWidth = this.font.width(bullet);
+                graphics.drawString(this.font, label, leftX + 8 + bulletWidth, entryY, COLOR_TEXT, false);
             }
         }
 
@@ -434,24 +417,31 @@ public class SetsManagerScreen extends Screen {
 
     private record DetailLine(String text, int color, int indent, boolean bold) {
         static DetailLine header(String text) {
-            return new DetailLine(text, COLOR_HEADER, 0, true);
+            return new DetailLine(text, COLOR_HEADER, 0, true);     // schwarz + bold
         }
-        static DetailLine text(String text, int color) {
-            return new DetailLine(text, color, 0, false);
+        static DetailLine text(String text) {
+            return new DetailLine(text, COLOR_TEXT, 0, false);       // schwarz
+        }
+        static DetailLine text(String text, int iconColor) {
+            return new DetailLine(text, iconColor, 0, false);        // für Icons mit Farbe
+        }
+        static DetailLine indented(String text) {
+            return new DetailLine(text, COLOR_TEXT, 8, false);       // schwarz
         }
         static DetailLine indented(String text, int color) {
-            return new DetailLine(text, color, 8, false);
+            return new DetailLine(text, color, 8, false);            // beibehalten für farbige Icons
         }
         static DetailLine blank() {
             return new DetailLine("", 0, 0, false);
         }
     }
 
+
     private List<DetailLine> buildDetailLines(ListEntry entry) {
         List<DetailLine> lines = new ArrayList<>();
         ArmorSetData data = entry.data();
 
-        // ── Set name ─────────────────────────────────────────────────────
+        // Set name
         String displayName = data.getDisplayName();
         if (displayName == null || displayName.isBlank()) {
             displayName = ListEntry.formatTagName(entry.tag());
@@ -459,12 +449,12 @@ public class SetsManagerScreen extends Screen {
         lines.add(DetailLine.header(displayName));
         lines.add(DetailLine.blank());
 
-        // ── Tag & scope ──────────────────────────────────────────────────
+        // Tag & scope — alles schwarz, nur Scope-Icon farbig
         lines.add(DetailLine.text("Tag: " + entry.tag(), COLOR_TEXT));
-        lines.add(DetailLine.text("Scope: " + entry.scopeLabel(), entry.getColor()));
+        lines.add(DetailLine.text("Scope: " + entry.scopeLabel(), COLOR_TEXT));
         lines.add(DetailLine.blank());
 
-        // ── Thresholds ───────────────────────────────────────────────────
+        // Thresholds
         if (data.getParts() == null || data.getParts().isEmpty()) {
             lines.add(DetailLine.text("(No thresholds defined)", COLOR_GRAY));
             return lines;
@@ -483,12 +473,12 @@ public class SetsManagerScreen extends Screen {
             String partKey = partEntry.getKey();
             ArmorSetData.PartData partData = partEntry.getValue();
 
-            // Threshold header
+            // Threshold header — schwarz + bold
             String num = partKey.replace("Part", "");
             lines.add(DetailLine.header("\u2550\u2550 " + num + " Piece" +
                     (Integer.parseInt(num) > 1 ? "s" : "") + " \u2550\u2550"));
 
-            // Effects
+            // Effects — Icon (✦) in Lila, Name+Level in Schwarz
             if (partData.getEffects() != null && !partData.getEffects().isEmpty()) {
                 for (ArmorSetData.EffectData effect : partData.getEffects()) {
                     String effectName = resolveEffectName(effect.getEffect());
@@ -498,7 +488,7 @@ public class SetsManagerScreen extends Screen {
                 }
             }
 
-            // Attributes
+            // Attributes — Icon (▸) in Grün, Name+Wert in Schwarz
             if (partData.getAttributes() != null && !partData.getAttributes().isEmpty()) {
                 for (Map.Entry<String, ArmorSetData.AttributeData> attr : partData.getAttributes().entrySet()) {
                     String attrName = resolveAttributeName(attr.getKey());
@@ -520,6 +510,7 @@ public class SetsManagerScreen extends Screen {
         return lines;
     }
 
+
     // ─── Validation page ─────────────────────────────────────────────────
 
     private void renderValidationPage(GuiGraphics graphics) {
@@ -531,33 +522,35 @@ public class SetsManagerScreen extends Screen {
 
         int ok = 0, warn = 0, err = 0;
         for (ZaubereiReloadListener.ValidationResult result : validationResults) {
-            int color;
+            int iconColor;
             String icon;
             switch (result.status()) {
                 case OK:
-                    color = COLOR_SPECIFIC;
-                    icon = "\u2714 "; // ✔
+                    iconColor = COLOR_SPECIFIC;  // Grün
+                    icon = "\u2714 ";            // ✔
                     ok++;
                     break;
                 case WARNING:
-                    color = COLOR_UNIVERSAL;
-                    icon = "\u26A0 "; // ⚠
+                    iconColor = COLOR_UNIVERSAL; // Gelb
+                    icon = "\u26A0 ";            // ⚠
                     warn++;
                     break;
                 default:
-                    color = 0xFFFF5555;
-                    icon = "\u2718 "; // ✘
+                    iconColor = 0xFFFF5555;      // Rot
+                    icon = "\u2718 ";            // ✘
                     err++;
                     break;
             }
 
-            lines.add(DetailLine.text(icon + result.filePath(), color));
+            // Icon farbig, Dateiname schwarz — als zwei separate drawString-Aufrufe
+            lines.add(DetailLine.text(icon, iconColor));           // Icon in Farbe
+            lines.add(DetailLine.indented(result.filePath()));     // Pfad schwarz, eingerückt
+
             if (result.status() != ZaubereiReloadListener.ValidationResult.Status.OK) {
-                // Wrap long messages
                 String msg = result.message();
                 List<String> wrapped = wrapText(msg, rightW - 20);
                 for (String line : wrapped) {
-                    lines.add(DetailLine.indented(line, COLOR_GRAY));
+                    lines.add(DetailLine.indented(line));          // Fehlermeldung schwarz
                 }
             }
         }
@@ -794,4 +787,33 @@ public class SetsManagerScreen extends Screen {
     public boolean isPauseScreen() {
         return false;
     }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        // Vanilla Blur + Dim
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
+
+        // Linkes Panel
+        drawPanel(graphics, leftPanelX, guiTop, leftPanelW, panelH);
+
+        // Rechtes Panel
+        drawPanel(graphics, rightPanelX, guiTop, rightPanelW, panelH);
+
+        // Trennlinie zwischen den Panels
+        int divX = leftPanelX + leftPanelW + 1;
+        graphics.fill(divX, guiTop + 4, divX + DIVIDER_WIDTH - 2, guiTop + panelH - 4, PANEL_DIVIDER);
+    }
+
+    /** Zeichnet ein Panel mit Hintergrund und Rahmen. */
+    private void drawPanel(GuiGraphics graphics, int x, int y, int w, int h) {
+        // Hintergrund (Beige/Pergament)
+        graphics.fill(x, y, x + w, y + h, PANEL_BG);
+        // Rahmen (1px, warmes Braun)
+        graphics.fill(x,         y,         x + w,     y + 1,     PANEL_BORDER); // oben
+        graphics.fill(x,         y + h - 1, x + w,     y + h,     PANEL_BORDER); // unten
+        graphics.fill(x,         y,         x + 1,     y + h,     PANEL_BORDER); // links
+        graphics.fill(x + w - 1, y,         x + w,     y + h,     PANEL_BORDER); // rechts
+    }
+
 }
+

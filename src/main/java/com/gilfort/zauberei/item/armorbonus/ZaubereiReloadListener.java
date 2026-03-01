@@ -67,55 +67,91 @@ public class ZaubereiReloadListener {
     }
 
     private static void handleJsonFile(File file) throws IOException {
-        File yearDir = file.getParentFile();
-        File majorDir = yearDir != null ? yearDir.getParentFile() : null;
+        // ── Determine major & year from relative path depth ──────────────
+        // 3 segments: {major}/{year}/file.json          → standard
+        // 2 segments: all_majors_all_years/file.json    → universal wildcard
+        java.nio.file.Path relativePath = BASE_DIR.toPath().relativize(file.toPath());
+        int segmentCount = relativePath.getNameCount(); // includes filename
 
-        if (majorDir == null || yearDir == null) {
-            Zauberei.LOGGER.error("[Zauberei] Ignoring invalid file structure: {}", file.getAbsolutePath());
-            return;
-        }
-
-        String major = majorDir.getName();
+        String major;
         int year;
-        try {
-            year = Integer.parseInt(yearDir.getName());
-        } catch (NumberFormatException e) {
-            Zauberei.LOGGER.error("[Zauberei] Invalid year folder name in file path: {}", file.getAbsolutePath());
+
+        if (segmentCount == 3) {
+            // Standard:    {major}/{year}/file.json
+            // Or:          all_majors/{year}/file.json
+            String majorName = relativePath.getName(0).toString();
+            String yearName  = relativePath.getName(1).toString();
+
+            if ("all_majors".equalsIgnoreCase(majorName)) {
+                major = ArmorSetDataRegistry.WILDCARD_MAJOR;
+            } else {
+                major = majorName;
+            }
+
+            try {
+                year = Integer.parseInt(yearName);
+            } catch (NumberFormatException e) {
+                Zauberei.LOGGER.error(
+                        "[Zauberei] Invalid year folder '{}' in path: {}. Skipping.",
+                        yearName, file.getAbsolutePath());
+                return;
+            }
+
+        } else if (segmentCount == 2) {
+            // Universal:   all_majors_all_years/file.json
+            String dirName = relativePath.getName(0).toString();
+            if (!"all_majors_all_years".equalsIgnoreCase(dirName)) {
+                Zauberei.LOGGER.error(
+                        "[Zauberei] Unexpected 2-level path: {}. " +
+                                "Expected 'all_majors_all_years/' or '{major}/{year}/'. Skipping.",
+                        file.getAbsolutePath());
+                return;
+            }
+            major = ArmorSetDataRegistry.WILDCARD_MAJOR;
+            year  = ArmorSetDataRegistry.WILDCARD_YEAR;
+
+        } else {
+            Zauberei.LOGGER.error(
+                    "[Zauberei] Invalid directory depth ({} segments) for file: {}. " +
+                            "Expected: {major}/{year}/file.json or all_majors_all_years/file.json",
+                    segmentCount, file.getAbsolutePath());
             return;
         }
 
+        // ── Parse filename as tag ────────────────────────────────────────
         String fileName = file.getName().replace(".json", "");
 
-        // Tag-only: require "__" in filename
         if (!fileName.contains("__")) {
             Zauberei.LOGGER.error(
-                    "[Zauberei] Invalid filename '{}' – expected format: namespace__tagpath.json (e.g. 'zauberei__magiccloth_armor.json'). Skipping.",
-                    file.getName()
-            );
+                    "[Zauberei] Invalid filename '{}' – expected format: " +
+                            "namespace__tagpath.json (e.g. 'zauberei__magiccloth_armor.json'). Skipping.",
+                    file.getName());
             return;
         }
 
-        // Convert "namespace__tagpath" -> "namespace:tagpath"
         String tagString = fileName.replaceFirst("__", ":");
-
         ResourceLocation tagLoc = ResourceLocation.tryParse(tagString);
         if (tagLoc == null) {
-            Zauberei.LOGGER.error("[Zauberei] '{}' is not a valid ResourceLocation (from file '{}'). Skipping.",
+            Zauberei.LOGGER.error(
+                    "[Zauberei] '{}' is not a valid ResourceLocation (from file '{}'). Skipping.",
                     tagString, file.getName());
             return;
         }
 
+        // ── Parse & validate JSON ────────────────────────────────────────
         try (FileReader reader = new FileReader(file)) {
             JsonElement json = JsonParser.parseReader(reader);
 
             if (!json.isJsonObject()) {
-                Zauberei.LOGGER.error("[Zauberei] Invalid JSON format in file: {}", file.getAbsolutePath());
+                Zauberei.LOGGER.error("[Zauberei] Invalid JSON format in file: {}",
+                        file.getAbsolutePath());
                 return;
             }
 
             ArmorSetData rawData = GSON.fromJson(json, ArmorSetData.class);
             if (rawData == null || rawData.getParts() == null || rawData.getParts().isEmpty()) {
-                Zauberei.LOGGER.error("[Zauberei] No 'parts' found in file: {} (tag {}). Skipping.",
+                Zauberei.LOGGER.error(
+                        "[Zauberei] No 'parts' found in file: {} (tag {}). Skipping.",
                         file.getAbsolutePath(), tagString);
                 return;
             }
@@ -123,10 +159,21 @@ public class ZaubereiReloadListener {
             ArmorSetData validatedData = validateData(rawData, file);
             ArmorSetDataRegistry.put(major.toLowerCase(), year, tagString, validatedData);
 
-            // Safe log: only on load, not in tick
-            Zauberei.LOGGER.info("[Zauberei] Loaded set definition: major={}, year={}, tag={}", major, year, tagString);
+            // ── Descriptive log message ──────────────────────────────────
+            String scope;
+            if (ArmorSetDataRegistry.WILDCARD_MAJOR.equals(major)
+                    && year == ArmorSetDataRegistry.WILDCARD_YEAR) {
+                scope = "ALL majors, ALL years";
+            } else if (ArmorSetDataRegistry.WILDCARD_MAJOR.equals(major)) {
+                scope = "ALL majors, year=" + year;
+            } else {
+                scope = "major=" + major + ", year=" + year;
+            }
+            Zauberei.LOGGER.info("[Zauberei] Loaded set definition: {} → tag={}",
+                    scope, tagString);
         }
     }
+
 
     private static ArmorSetData validateData(ArmorSetData data, File file) {
         data.getParts().forEach((partName, partData) -> {

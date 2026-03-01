@@ -71,12 +71,14 @@ public class ArmorSetData {
         }
     }
 
-    public static class AttributeData{
+    public static class AttributeData {
         private double value;
         private String modifier;
 
-        public double getValue(){return value;}
-        public String getModifier(){return modifier;}
+        public double getValue() { return value; }
+        public String getModifier() { return modifier; }
+        public void setValue(double value) { this.value = value; }
+        public void setModifier(String modifier) { this.modifier = modifier; }
     }
 
     /**

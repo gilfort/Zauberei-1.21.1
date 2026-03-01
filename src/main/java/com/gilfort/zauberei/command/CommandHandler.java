@@ -1,11 +1,11 @@
 package com.gilfort.zauberei.command;
 
-import com.gilfort.zauberei.Zauberei;
-import com.gilfort.zauberei.guis.SetsManagerScreen;
+
 import com.gilfort.zauberei.helpers.PlayerDataHelper;
 import com.gilfort.zauberei.item.armorbonus.ArmorSetData;
 import com.gilfort.zauberei.item.armorbonus.ArmorSetDataRegistry;
 import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
+import com.gilfort.zauberei.network.OpenSetsGuiPayload;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.Command;
@@ -15,7 +15,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -31,6 +30,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -420,18 +420,21 @@ public class CommandHandler {
      */
     private static int openSetsGui(CommandSourceStack source) {
         ServerPlayer player;
-        try { player = source.getPlayerOrException(); }
-        catch (Exception e) { source.sendFailure(Component.literal("Player only.")); return 0; }
-
-        // Client-side: open the screen
-        // In singleplayer this works directly, for multiplayer
-        // we'd send a packet with the data
-        if (source.getLevel().isClientSide()) {
-            Minecraft.getInstance().setScreen(new SetsManagerScreen());
+        try {
+            player = source.getPlayerOrException();
+        } catch (Exception e) {
+            source.sendFailure(Component.literal("Player only."));
+            return 0;
         }
-        source.sendSuccess(() -> Component.literal("[Zauberei] Opening Sets Manager..."), false);
+
+        // Sende Packet an den Client → Client öffnet den Screen
+        PacketDistributor.sendToPlayer(player, new OpenSetsGuiPayload());
+
+        source.sendSuccess(
+                () -> Component.literal("[Zauberei] Opening Sets Manager..."), false);
         return 1;
     }
+
 
 
     private static int setsList(CommandSourceStack source) {

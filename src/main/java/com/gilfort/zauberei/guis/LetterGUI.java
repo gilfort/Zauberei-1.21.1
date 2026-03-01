@@ -2,7 +2,7 @@ package com.gilfort.zauberei.guis;
 
 
 import com.gilfort.zauberei.Config;
-import com.gilfort.zauberei.Network.LetterButtonPayload;
+import com.gilfort.zauberei.network.LetterButtonPayload;
 import com.gilfort.zauberei.Zauberei;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;

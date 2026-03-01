@@ -1,4 +1,4 @@
-package com.gilfort.zauberei.Network;
+package com.gilfort.zauberei.network;
 
 import com.gilfort.zauberei.Zauberei;
 import io.netty.buffer.ByteBuf;

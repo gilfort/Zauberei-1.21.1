@@ -8,6 +8,7 @@ import com.gilfort.zauberei.item.armor.ArmorSetTooltipHandler;
 import com.gilfort.zauberei.item.armor.ZaubereiArmorMaterials;
 import com.gilfort.zauberei.commands.CommandsService;
 import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
+import com.gilfort.zauberei.network.NetworkSetup;
 import com.gilfort.zauberei.structure.ZaubereiStructures;
 import com.gilfort.zauberei.util.ZaubereiPlayerData;
 import net.minecraft.resources.ResourceLocation;
@@ -79,6 +80,8 @@ public class Zauberei
         } else {
             LOGGER.info("[Zauberei] Ars Nouveau not found, skipping compatibility setup.");
         }
+        modEventBus.addListener(NetworkSetup::onRegisterPayloads);
+
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (ExampleMod) to respond directly to events.

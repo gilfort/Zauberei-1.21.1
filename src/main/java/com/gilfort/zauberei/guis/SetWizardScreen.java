@@ -379,18 +379,9 @@ public class SetWizardScreen extends Screen {
      * {@code this.minecraft.setScreen(new SetEditorScreen(this, editorData));}</p>
      */
     private void proceedToStep2(SetEditorData editorData) {
-        // Phase 4: uncomment when SetEditorScreen is implemented:
-        // this.minecraft.setScreen(new SetEditorScreen(this, editorData));
+        assert this.minecraft != null;
+        this.minecraft.setScreen(new SetEditorScreen(this, editorData));
 
-        // Temporary: log and go back
-        com.gilfort.zauberei.Zauberei.LOGGER.info(
-                "[SetWizard] Step 1 complete: tag={}, major={}, year={}, existing={}",
-                editorData.getTag(), editorData.getMajor(),
-                editorData.getYear(), editorData.isExistingSet());
-        com.gilfort.zauberei.Zauberei.LOGGER.info(
-                "[SetWizard] File path would be: {}", editorData.resolveFilePath());
-
-        setStatus("Step 1 complete! (Step 2 coming in Phase 4)", COLOR_SUCCESS);
     }
 
     // ══════════════════════════════════════════════════════════════════

@@ -50,6 +50,7 @@ public class SearchableListPopup<T> extends Screen {
     private final List<Entry<T>> allEntries;
     private final List<Entry<T>> filteredEntries;
     private final Consumer<T> onSelect;
+    private final boolean allowCustomEntry;
     private final Component popupTitle;
 
     // ──── Widgets ───────────────────────────────────────────────────────
@@ -110,8 +111,25 @@ public class SearchableListPopup<T> extends Screen {
         this.allEntries = new ArrayList<>(entries);
         this.filteredEntries = new ArrayList<>(entries);
         this.onSelect = onSelect;
+        this.allowCustomEntry = false;
     }
-
+    /**
+     * Creates a SearchableListPopup with optional custom-entry support.
+     *
+     * @param allowCustomEntry if true, the user can type any text and select it
+     *                         as a custom value (only works when T = String)
+     */
+    public SearchableListPopup(Component popupTitle, Screen parentScreen,
+                               List<Entry<T>> entries, Consumer<T> onSelect,
+                               boolean allowCustomEntry) {
+        super(popupTitle);
+        this.popupTitle    = popupTitle;
+        this.parentScreen  = parentScreen;
+        this.allEntries    = new ArrayList<>(entries);
+        this.filteredEntries = new ArrayList<>(entries);
+        this.onSelect      = onSelect;
+        this.allowCustomEntry = allowCustomEntry;
+    }
     // ════════════════════════════════════════════════════════════════════
     //  Init
     // ════════════════════════════════════════════════════════════════════
@@ -275,10 +293,29 @@ public class SearchableListPopup<T> extends Screen {
             }
         }
 
-        // Reset scroll and selection
+        // Custom-entry: show "✎ Use 'xyz' (new)" at top if:
+        // - allowCustomEntry is enabled
+        // - search text is non-empty
+        // - no entry matches EXACTLY (case-insensitive)
+        if (allowCustomEntry && !filter.trim().isEmpty()) {
+            String trimmed = filter.trim();
+            boolean exactMatch = allEntries.stream()
+                    .anyMatch(e -> e.searchableText().equalsIgnoreCase(trimmed));
+            if (!exactMatch) {
+                @SuppressWarnings("unchecked")
+                Entry<T> customEntry = (Entry<T>) new Entry<>(
+                        trimmed,
+                        Component.literal("✎ Use \"" + trimmed + "\" (new)")
+                                .withStyle(ChatFormatting.YELLOW),
+                        trimmed);
+                filteredEntries.addFirst(customEntry);
+            }
+        }
+
         scrollOffset = 0;
         selectedIndex = -1;
     }
+
 
     // ════════════════════════════════════════════════════════════════════
     //  Input handling

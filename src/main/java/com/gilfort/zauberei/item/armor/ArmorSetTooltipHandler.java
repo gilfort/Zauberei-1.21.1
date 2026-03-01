@@ -275,25 +275,39 @@ public static void onMouseScroll(ScreenEvent.MouseScrolled.Pre event) {
                 .withStyle(ChatFormatting.GOLD));
 
 
-        // ── Part data for current worn count ─────────────────────────────
-        ArmorSetData.PartData partData = data.getParts().get(wornParts + "Part");
+        // ── Part data: highest threshold ≤ worn pieces ───────────────────
+        ArmorSetData.PartData partData = data.getActivePartData(wornParts);
 
         if (partData == null) {
-            // No bonus for this exact count → show next threshold hint
-            int nextThreshold = -1;
-            for (int i = wornParts + 1; i <= maxParts; i++) {
-                if (data.getParts().containsKey(i + "Part")) {
-                    nextThreshold = i;
-                    break;
-                }
-            }
-            if (nextThreshold > 0) {
+            // Player hasn't reached ANY threshold yet → show hint for first one
+            int firstThreshold = data.getParts().keySet().stream()
+                    .map(k -> k.replace("Part", ""))
+                    .mapToInt(s -> {
+                        try { return Integer.parseInt(s); } catch (NumberFormatException e) { return Integer.MAX_VALUE; }
+                    })
+                    .min()
+                    .orElse(0);
+            if (firstThreshold > 0 && firstThreshold != Integer.MAX_VALUE) {
                 event.getToolTip().add(Component.literal(
-                                "  Equip " + (nextThreshold - wornParts) + " more piece(s) for a bonus")
+                                "  Equip " + (firstThreshold - wornParts) + " more piece(s) for a bonus")
                         .withStyle(ChatFormatting.GRAY));
             }
             return;
         }
+
+        // ── Optional: Show next upgrade hint ─────────────────────────────
+        // If there's a higher threshold the player hasn't reached yet, hint at it.
+        int nextThreshold = -1;
+        for (String key : data.getParts().keySet()) {
+            String numStr = key.replace("Part", "");
+            try {
+                int t = Integer.parseInt(numStr);
+                if (t > wornParts && (nextThreshold == -1 || t < nextThreshold)) {
+                    nextThreshold = t;
+                }
+            } catch (NumberFormatException e) { /* skip */ }
+        }
+
 
         // --- Render Effects ---
         if (partData.getEffects() != null && !partData.getEffects().isEmpty()) {

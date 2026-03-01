@@ -79,4 +79,33 @@ public class ArmorSetData {
         public String getModifier(){return modifier;}
     }
 
+    /**
+     * Returns the PartData for the highest defined threshold that does not
+     * exceed {@code wornParts}.
+     *
+     * <p>Example: if {@code 2Part} and {@code 4Part} are defined and
+     * {@code wornParts} is 3, returns the {@code 2Part} data.</p>
+     *
+     * @param wornParts number of set pieces currently worn
+     * @return the active PartData, or {@code null} if no threshold is reached
+     */
+    public PartData getActivePartData(int wornParts) {
+        PartData best = null;
+        int bestThreshold = 0;
+        for (Map.Entry<String, PartData> entry : parts.entrySet()) {
+            String numStr = entry.getKey().replace("Part", "");
+            try {
+                int threshold = Integer.parseInt(numStr);
+                if (threshold <= wornParts && threshold > bestThreshold) {
+                    bestThreshold = threshold;
+                    best = entry.getValue();
+                }
+            } catch (NumberFormatException e) {
+                // skip malformed keys
+            }
+        }
+        return best;
+    }
+
+
 }

@@ -133,11 +133,12 @@ public class ArmorEffects {
                 continue;
             }
 
-            ArmorSetData.PartData partData = data.getParts().get(count + "Part");
+            ArmorSetData.PartData partData = data.getActivePartData(count);
             if (partData == null) {
-                // It's valid to define only e.g. "4Part"
+                // Player hasn't reached the first threshold yet
                 continue;
             }
+
 
             applySetEffects(player, partData);
             applySetAttributes(player, partData);

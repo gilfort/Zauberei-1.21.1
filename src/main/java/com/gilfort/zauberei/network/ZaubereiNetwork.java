@@ -19,6 +19,12 @@ public class ZaubereiNetwork {
                 ServerPayloadHandler::handleIntroductionLetter
         );
 
+        registrar.playToClient(
+                OpenSetsGuiPayload.TYPE,
+                OpenSetsGuiPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleOpenSetsGui
+        );
+
         System.out.println("ZaubereiNetwork: Registering payload handler for LetterButtonPayload");
 
     }

@@ -6,10 +6,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ArmorSetDataRegistry {
@@ -114,6 +111,61 @@ public class ArmorSetDataRegistry {
                 DATA_MAP.keySet().stream()
                         .map(key -> key.split(":", 2)[0])
                         .filter(m -> !WILDCARD_MAJOR.equals(m))
+                        .collect(Collectors.toSet())
+        );
+    }
+
+    // ─── Record for structured iteration ─────────────────────────────────
+
+    /**
+     * Represents one loaded set entry with parsed key components.
+     * Used by commands like {@code /zauberei sets list} and {@code info}.
+     */
+    public record SetEntry(String major, int year, String tag, ArmorSetData data) {
+
+        /**
+         * Human-readable scope description for chat output.
+         * @return e.g. "naturalist / year 3", "ALL majors / year 1", "ALL majors / ALL years"
+         */
+        public String scopeLabel() {
+            boolean wildMajor = WILDCARD_MAJOR.equals(major);
+            boolean wildYear  = year == WILDCARD_YEAR;
+            if (wildMajor && wildYear) return "ALL majors / ALL years";
+            if (wildMajor)             return "ALL majors / year " + year;
+            return major + " / year " + year;
+        }
+    }
+
+    /**
+     * Returns ALL loaded set entries as structured records.
+     * Useful for listing, validation, and debug commands.
+     */
+    public static List<SetEntry> getAllEntries() {
+        List<SetEntry> entries = new ArrayList<>();
+        for (Map.Entry<String, ArmorSetData> e : DATA_MAP.entrySet()) {
+            String[] parts = e.getKey().split(":", 3);
+            if (parts.length < 3) continue;
+            String major = parts[0];
+            int year;
+            try { year = Integer.parseInt(parts[1]); } catch (NumberFormatException ex) { continue; }
+            String tag = parts[2];
+            entries.add(new SetEntry(major, year, tag, e.getValue()));
+        }
+        return entries;
+    }
+
+    /**
+     * Returns all unique tag strings across ALL entries (regardless of major/year).
+     * Used for command auto-completion of tag arguments.
+     */
+    public static Set<String> getAllTags() {
+        return Collections.unmodifiableSet(
+                DATA_MAP.keySet().stream()
+                        .map(key -> {
+                            String[] parts = key.split(":", 3);
+                            return parts.length >= 3 ? parts[2] : null;
+                        })
+                        .filter(t -> t != null)
                         .collect(Collectors.toSet())
         );
     }

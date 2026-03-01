@@ -18,6 +18,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.ClickEvent;
@@ -158,6 +159,23 @@ public class CommandHandler {
                         .then(Commands.literal("checkyear")
                                 .then(Commands.argument("player", StringArgumentType.word())
                                         .executes(CommandHandler::checkYearCommand)))
+                        // /zauberei tag_items <namespace> <tagpath>
+                        .then(Commands.literal("tag_items")
+                                .requires(src -> src.hasPermission(2))
+                                .then(Commands.argument("tag_namespace", StringArgumentType.word())
+                                        .suggests(TAG_NAMESPACE_SUGGESTIONS)
+                                        .then(Commands.argument("tag_path", StringArgumentType.word())
+                                                .suggests(TAG_ITEMS_PATH_SUGGESTIONS)
+                                                .executes(ctx -> tagItems(ctx.getSource(),
+                                                        StringArgumentType.getString(ctx, "tag_namespace"),
+                                                        StringArgumentType.getString(ctx, "tag_path"))))))
+                        // /zauberei list_tags [filter]
+                        .then(Commands.literal("list_tags")
+                                .requires(src -> src.hasPermission(2))
+                                .executes(ctx -> listTags(ctx.getSource(), ""))
+                                .then(Commands.argument("filter", StringArgumentType.greedyString())
+                                        .executes(ctx -> listTags(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "filter")))))
 
                         // ── Debug Commands (OP 2+) ───────────────────────
                         .then(Commands.literal("debug")
@@ -239,6 +257,120 @@ public class CommandHandler {
     // ═══════════════════════════════════════════════════════════════════════
     //  PLAYER COMMANDS
     // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Lists all items registered under a given item tag.
+     * Each item is shown with its registry name and a hover tooltip.
+     */
+    private static int tagItems(CommandSourceStack source, String namespace, String tagPath) {
+        ResourceLocation tagLoc = ResourceLocation.fromNamespaceAndPath(namespace, tagPath);
+        TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLoc);
+
+        List<Item> items = BuiltInRegistries.ITEM.getOrCreateTag(tagKey)
+                .stream()
+                .map(Holder::value)
+                .toList();
+
+        if (items.isEmpty()) {
+            source.sendSystemMessage(Component.literal("[Zauberei] ")
+                    .withStyle(ChatFormatting.AQUA)
+                    .append(Component.literal("Tag ")
+                            .withStyle(ChatFormatting.WHITE))
+                    .append(Component.literal("#" + tagLoc)
+                            .withStyle(ChatFormatting.YELLOW))
+                    .append(Component.literal(" contains no items (or does not exist).")
+                            .withStyle(ChatFormatting.WHITE)));
+            return 1;
+        }
+
+        // Header
+        source.sendSystemMessage(Component.literal("[Zauberei] ")
+                .withStyle(ChatFormatting.AQUA)
+                .append(Component.literal("Tag ")
+                        .withStyle(ChatFormatting.WHITE))
+                .append(Component.literal("#" + tagLoc)
+                        .withStyle(ChatFormatting.YELLOW))
+                .append(Component.literal(" (" + items.size() + " items):")
+                        .withStyle(ChatFormatting.WHITE)));
+
+        // Each item
+        for (Item item : items) {
+            ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+            String displayName = new ItemStack(item).getHoverName().getString();
+
+            MutableComponent line = Component.literal("  \u25B8 ")
+                    .withStyle(ChatFormatting.GRAY)
+                    .append(Component.literal(displayName)
+                            .withStyle(ChatFormatting.GREEN))
+                    .append(Component.literal(" (" + itemId + ")")
+                            .withStyle(ChatFormatting.DARK_GRAY));
+
+            // Hover: show full registry path
+            line.withStyle(style -> style.withHoverEvent(
+                    new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                            Component.literal(itemId.toString()))));
+
+            source.sendSystemMessage(line);
+        }
+
+        return 1;
+    }
+
+    /**
+     * Lists all registered item tags, optionally filtered by a search string.
+     * Each tag is clickable and runs /zauberei tag_items for that tag.
+     */
+    private static int listTags(CommandSourceStack source, String filter) {
+        List<TagKey<Item>> allTags = BuiltInRegistries.ITEM.getTagNames()
+                .sorted(Comparator.comparing(t -> t.location().toString()))
+                .toList();
+
+        List<TagKey<Item>> filtered = filter.isEmpty()
+                ? allTags
+                : allTags.stream()
+                .filter(t -> t.location().toString().contains(filter.toLowerCase()))
+                .toList();
+
+        if (filtered.isEmpty()) {
+            source.sendSystemMessage(Component.literal("[Zauberei] ")
+                    .withStyle(ChatFormatting.AQUA)
+                    .append(Component.literal("No tags found" +
+                                    (filter.isEmpty() ? "." : " matching \"" + filter + "\"."))
+                            .withStyle(ChatFormatting.YELLOW)));
+            return 1;
+        }
+
+        // Header
+        source.sendSystemMessage(Component.literal("[Zauberei] ")
+                .withStyle(ChatFormatting.AQUA)
+                .append(Component.literal(filtered.size() + " tag(s) found"
+                                + (filter.isEmpty() ? ":" : " matching \"" + filter + "\":"))
+                        .withStyle(ChatFormatting.WHITE)));
+
+        // Max 50 anzeigen, sonst wird der Chat überflutet
+        int limit = Math.min(filtered.size(), 50);
+        for (int i = 0; i < limit; i++) {
+            ResourceLocation loc = filtered.get(i).location();
+            String cmd = "/zauberei tag_items " + loc.getNamespace() + " " + loc.getPath();
+
+            MutableComponent line = Component.literal("  #" + loc)
+                    .withStyle(ChatFormatting.YELLOW)
+                    .withStyle(style -> style
+                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd))
+                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                    Component.literal("Click to show items in this tag"))));
+
+            source.sendSystemMessage(line);
+        }
+
+        if (filtered.size() > limit) {
+            source.sendSystemMessage(Component.literal("  ... and " + (filtered.size() - limit) + " more. Use a filter to narrow down.")
+                    .withStyle(ChatFormatting.GRAY));
+        }
+
+        return 1;
+    }
+
 
     private static int setMajorCommand(CommandContext<CommandSourceStack> context) {
         String major = StringArgumentType.getString(context, "major");
@@ -823,6 +955,17 @@ public class CommandHandler {
         if (ArmorSetDataRegistry.WILDCARD_MAJOR.equals(entry.major())) return 1;
         return 2;
     }
+
+    public static final SuggestionProvider<CommandSourceStack> TAG_ITEMS_PATH_SUGGESTIONS = (ctx, builder) -> {
+        String namespace = StringArgumentType.getString(ctx, "tag_namespace");
+        List<String> paths = BuiltInRegistries.ITEM.getTagNames()
+                .filter(tagKey -> tagKey.location().getNamespace().equals(namespace))
+                .map(tagKey -> tagKey.location().getPath())
+                .sorted()
+                .toList();
+        return SharedSuggestionProvider.suggest(paths, builder);
+    };
+
 
     /** Human-readable scope label. */
     private static String formatScope(ArmorSetDataRegistry.SetEntry entry) {

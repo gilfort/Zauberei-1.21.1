@@ -1,18 +1,22 @@
 package com.gilfort.zauberei.guis;
 
-import com.gilfort.zauberei.Zauberei;
 import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
 import com.gilfort.zauberei.item.armorbonus.ArmorSetData;
 import com.gilfort.zauberei.item.armorbonus.ArmorSetDataRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
@@ -49,6 +53,16 @@ public class SetsManagerScreen extends Screen {
     private int leftPanelX, leftPanelW;
     private int rightPanelX, rightPanelW;
     private int panelH;
+
+    // ─── Tag Browser state ───────────────────────────────────────────────
+    private boolean showingTagBrowser = false;
+    private EditBox tagSearchBox;
+    private List<TagKey<Item>> allTags = new ArrayList<>();
+    private List<TagKey<Item>> filteredTags = new ArrayList<>();
+    private int tagSelectedIndex = -1;
+    private int tagLeftScrollOffset = 0;
+    private int tagRightScrollOffset = 0;
+    private List<Item> selectedTagItems = new ArrayList<>();
 
 
     // Text colors — alles schwarz
@@ -193,20 +207,37 @@ public class SetsManagerScreen extends Screen {
 
         buildListEntries();
 
-        // Buttons zentriert unten
-        int buttonW = 70;
+        // ── Buttons ──────────────────────────────────────────────────────
+        int buttonW = 60;
         int buttonH = 20;
-        int buttonY = margin + contentH + 8;
-        int buttonSpacing = 12;
-        int totalButtonsW = buttonW * 3 + buttonSpacing * 2;
+        int buttonY = margin + contentH + 4;
+        int buttonSpacing = 8;
+        int totalButtonsW = buttonW * 4 + buttonSpacing * 3; // jetzt 4 Buttons
         int buttonStartX = (this.width - totalButtonsW) / 2;
 
         addRenderableWidget(Button.builder(Component.literal("Reload"), btn -> onReload())
                 .bounds(buttonStartX, buttonY, buttonW, buttonH).build());
         addRenderableWidget(Button.builder(Component.literal("Validate"), btn -> onValidate())
-                .bounds(buttonStartX + buttonW + buttonSpacing, buttonY, buttonW, buttonH).build());
-        addRenderableWidget(Button.builder(Component.literal("Close"), btn -> onClose())
+                .bounds(buttonStartX + (buttonW + buttonSpacing), buttonY, buttonW, buttonH).build());
+        addRenderableWidget(Button.builder(Component.literal("Tags"), btn -> onToggleTagBrowser())
                 .bounds(buttonStartX + (buttonW + buttonSpacing) * 2, buttonY, buttonW, buttonH).build());
+        addRenderableWidget(Button.builder(Component.literal("Close"), btn -> onClose())
+                .bounds(buttonStartX + (buttonW + buttonSpacing) * 3, buttonY, buttonW, buttonH).build());
+
+// ── Tag Search Box (unsichtbar bis Tag-Browser aktiv) ────────────
+        tagSearchBox = new EditBox(this.font, leftX, leftY, leftW, 14, Component.literal("Search tags..."));
+        tagSearchBox.setMaxLength(100);
+        tagSearchBox.setHint(Component.literal("Filter tags...").withStyle(ChatFormatting.GRAY));
+        tagSearchBox.setResponder(this::onTagFilterChanged);
+        tagSearchBox.setVisible(false);
+        addRenderableWidget(tagSearchBox);
+
+// ── Tag-Daten vorladen ───────────────────────────────────────────
+        allTags = BuiltInRegistries.ITEM.getTagNames()
+                .sorted(Comparator.comparing(t -> t.location().toString()))
+                .collect(Collectors.toCollection(ArrayList::new));
+        filteredTags = new ArrayList<>(allTags);
+
     }
 
 
@@ -225,7 +256,7 @@ public class SetsManagerScreen extends Screen {
         // Group by tag, then sort entries within each group
         Map<String, List<ArmorSetDataRegistry.SetEntry>> grouped = allEntries.stream()
                 .collect(Collectors.groupingBy(ArmorSetDataRegistry.SetEntry::tag,
-                        LinkedHashMap::new, Collectors.toList()));
+                        LinkedHashMap::new, Collectors.toCollection(ArrayList::new)));
 
         for (Map.Entry<String, List<ArmorSetDataRegistry.SetEntry>> group : grouped.entrySet()) {
             String tag = group.getKey();
@@ -241,7 +272,7 @@ public class SetsManagerScreen extends Screen {
                         int prioB = scopePriority(b);
                         return Integer.compare(prioA, prioB);
                     })
-                    .toList();
+                    .collect(Collectors.toCollection(ArrayList::new));
 
             for (ArmorSetDataRegistry.SetEntry se : sorted) {
                 listEntries.add(new ListEntry(
@@ -273,18 +304,174 @@ public class SetsManagerScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        renderLeftPage(graphics, mouseX, mouseY);
-
-        if (showingValidation && validationResults != null) {
-            renderValidationPage(graphics);
+        if (showingTagBrowser) {
+            renderTagList(graphics, mouseX, mouseY);
+            renderTagItems(graphics);
         } else {
-            renderRightPage(graphics);
+            renderLeftPage(graphics, mouseX, mouseY);
+            if (showingValidation && validationResults != null) {
+                renderValidationPage(graphics);
+            } else {
+                renderRightPage(graphics);
+            }
         }
     }
 
 
 
+
     // ─── Left page: Set list ─────────────────────────────────────────────
+
+    // ─── Tag Browser: left panel (tag list) ──────────────────────────────
+
+    private void renderTagList(GuiGraphics graphics, int mouseX, int mouseY) {
+        // Bereich unterhalb der SearchBox
+        int listY = leftY + 18; // SearchBox ist 14px hoch + 4px Abstand
+        int listH = leftH - 18;
+        int maxLines = listH / lineHeight;
+
+        graphics.enableScissor(leftX, listY, leftX + leftW, listY + listH);
+
+        if (filteredTags.isEmpty()) {
+            graphics.drawString(this.font,
+                    Component.literal("No tags found.").withStyle(ChatFormatting.ITALIC),
+                    leftX + 3, listY + 3, COLOR_GRAY, false);
+            graphics.disableScissor();
+            return;
+        }
+
+        int visibleEnd = Math.min(filteredTags.size(), tagLeftScrollOffset + maxLines);
+        for (int i = tagLeftScrollOffset; i < visibleEnd; i++) {
+            int entryY = listY + (i - tagLeftScrollOffset) * lineHeight;
+            TagKey<Item> tag = filteredTags.get(i);
+
+            // Selection / Hover highlight
+            if (i == tagSelectedIndex) {
+                graphics.fill(leftX, entryY - 1, leftX + leftW, entryY + lineHeight - 1, COLOR_SELECTED);
+            } else if (mouseX >= leftX && mouseX <= leftX + leftW
+                    && mouseY >= entryY && mouseY < entryY + lineHeight) {
+                graphics.fill(leftX, entryY - 1, leftX + leftW, entryY + lineHeight - 1, COLOR_HOVER);
+            }
+
+            // Tag name: namespace in grau, path in schwarz
+            String ns = tag.location().getNamespace();
+            String path = tag.location().getPath();
+
+            graphics.drawString(this.font, ns + ":", leftX + 3, entryY, COLOR_GRAY, false);
+            int nsWidth = this.font.width(ns + ":");
+
+            String displayPath = path;
+            if (this.font.width(displayPath) > leftW - nsWidth - 10) {
+                while (this.font.width(displayPath + "...") > leftW - nsWidth - 10 && displayPath.length() > 3) {
+                    displayPath = displayPath.substring(0, displayPath.length() - 1);
+                }
+                displayPath += "...";
+            }
+            graphics.drawString(this.font, displayPath, leftX + 3 + nsWidth, entryY, COLOR_TEXT, false);
+        }
+
+        // Scrollbar
+        if (filteredTags.size() > maxLines) {
+            int scrollBarX = leftX + leftW - 3;
+            float ratio = (float) tagLeftScrollOffset / Math.max(1, filteredTags.size() - maxLines);
+            int thumbHeight = Math.max(10, listH * maxLines / filteredTags.size());
+            int thumbY = listY + (int) ((listH - thumbHeight) * ratio);
+            graphics.fill(scrollBarX, listY, scrollBarX + 2, listY + listH, 0x33000000);
+            graphics.fill(scrollBarX, thumbY, scrollBarX + 2, thumbY + thumbHeight, 0xAA553300);
+        }
+
+        graphics.disableScissor();
+    }
+
+// ─── Tag Browser: right panel (items in tag) ─────────────────────────
+
+    private void renderTagItems(GuiGraphics graphics) {
+        graphics.enableScissor(rightX, rightY, rightX + rightW, rightY + rightH);
+
+        if (tagSelectedIndex < 0 || tagSelectedIndex >= filteredTags.size()) {
+            graphics.drawString(this.font,
+                    Component.literal("Select a tag on the left.").withStyle(ChatFormatting.ITALIC),
+                    rightX + 5, rightY + 5, COLOR_GRAY, false);
+            graphics.disableScissor();
+            return;
+        }
+
+        TagKey<Item> tag = filteredTags.get(tagSelectedIndex);
+
+        // Header
+        int y = rightY - tagRightScrollOffset * lineHeight;
+
+        // Title
+        if (isVisible(y)) {
+            graphics.drawString(this.font,
+                    Component.literal("#" + tag.location()).withStyle(s -> s.withBold(true)),
+                    rightX + 3, y, COLOR_HEADER, false);
+        }
+        y += lineHeight;
+
+        // Count
+        if (isVisible(y)) {
+            graphics.drawString(this.font,
+                    selectedTagItems.size() + " item(s)",
+                    rightX + 3, y, COLOR_TEXT, false);
+        }
+        y += lineHeight;
+        y += lineHeight; // blank line
+
+        // Items – Icon + Name + ID
+        // Jedes Item braucht 2 Zeilen: Name-Zeile (mit Icon) + ID-Zeile
+        List<int[]> iconPositions = new ArrayList<>(); // [x, y, itemIndex]
+
+        for (int i = 0; i < selectedTagItems.size(); i++) {
+            Item item = selectedTagItems.get(i);
+            ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+            String displayName = new ItemStack(item).getHoverName().getString();
+
+            // Zeile 1: Icon-Platz + Name
+            if (isVisible(y)) {
+                graphics.drawString(this.font, displayName,
+                        rightX + 22, y, COLOR_TEXT, false);
+                // Icon-Position merken (rendern wir gleich)
+                iconPositions.add(new int[]{rightX + 3, y - 1, i});
+            }
+            y += lineHeight;
+
+            // Zeile 2: Registry-ID eingerückt
+            if (isVisible(y)) {
+                graphics.drawString(this.font, itemId.toString(),
+                        rightX + 22, y, COLOR_GRAY, false);
+            }
+            y += lineHeight;
+        }
+
+        // Scrollbar
+        int totalLines = 3 + selectedTagItems.size() * 2;
+        if (totalLines > maxLinesRight) {
+            int scrollBarX = rightX + rightW - 3;
+            float ratio = (float) tagRightScrollOffset / Math.max(1, totalLines - maxLinesRight);
+            int thumbHeight = Math.max(10, rightH * maxLinesRight / totalLines);
+            int thumbY = rightY + (int) ((rightH - thumbHeight) * ratio);
+            graphics.fill(scrollBarX, rightY, scrollBarX + 2, rightY + rightH, 0x33000000);
+            graphics.fill(scrollBarX, thumbY, scrollBarX + 2, thumbY + thumbHeight, 0xAA553300);
+        }
+
+        graphics.disableScissor();
+
+        // Icons NACH disableScissor rendern (renderItem hat eigenen Scissor/Blend)
+        graphics.enableScissor(rightX, rightY, rightX + rightW, rightY + rightH);
+        for (int[] pos : iconPositions) {
+            ItemStack stack = new ItemStack(selectedTagItems.get(pos[2]));
+            graphics.renderItem(stack, pos[0], pos[1]);
+        }
+        graphics.disableScissor();
+    }
+
+    /** Prüft ob eine y-Position im sichtbaren Bereich liegt. */
+    private boolean isVisible(int y) {
+        return y >= rightY - lineHeight && y < rightY + rightH;
+    }
+
+
 
     private void renderLeftPage(GuiGraphics graphics, int mouseX, int mouseY) {
         if (listEntries.isEmpty()) {
@@ -467,7 +654,7 @@ public class SetsManagerScreen extends Screen {
                     try { return Integer.parseInt(e.getKey().replace("Part", "")); }
                     catch (NumberFormatException ex) { return 99; }
                 }))
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
 
         for (Map.Entry<String, ArmorSetData.PartData> partEntry : sortedParts) {
             String partKey = partEntry.getKey();
@@ -594,6 +781,19 @@ public class SetsManagerScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (super.mouseClicked(mouseX, mouseY, button)) return true;
 
+        // Tag Browser: click on tag list
+        if (showingTagBrowser) {
+            int listY = leftY + 18;
+            int listH = leftH - 18;
+            if (mouseX >= leftX && mouseX <= leftX + leftW
+                    && mouseY >= listY && mouseY <= listY + listH) {
+                int clickedLine = (int) ((mouseY - listY) / lineHeight) + tagLeftScrollOffset;
+                selectTag(clickedLine);
+                return true;
+            }
+            return false;
+        }
+
         // Click on left page → select entry
         if (mouseX >= leftX && mouseX <= leftX + leftW
                 && mouseY >= leftY && mouseY <= leftY + leftH) {
@@ -616,6 +816,29 @@ public class SetsManagerScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         // Scroll left page
+        if (showingTagBrowser) {
+            int listY = leftY + 18;
+            int listH = leftH - 18;
+            int maxLines = listH / lineHeight;
+
+            // Scroll tag list (links)
+            if (mouseX >= leftX && mouseX <= leftX + leftW
+                    && mouseY >= listY && mouseY <= listY + listH) {
+                if (scrollY > 0) tagLeftScrollOffset = Math.max(0, tagLeftScrollOffset - 1);
+                else tagLeftScrollOffset = Math.min(Math.max(0, filteredTags.size() - maxLines), tagLeftScrollOffset + 1);
+                return true;
+            }
+
+            // Scroll tag items (rechts)
+            if (mouseX >= rightX && mouseX <= rightX + rightW
+                    && mouseY >= rightY && mouseY <= rightY + rightH) {
+                if (scrollY > 0) tagRightScrollOffset = Math.max(0, tagRightScrollOffset - 1);
+                else tagRightScrollOffset++;
+                return true;
+            }
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        }
+
         if (mouseX >= leftX && mouseX <= leftX + leftW
                 && mouseY >= leftY && mouseY <= leftY + leftH) {
             if (scrollY > 0) {
@@ -813,6 +1036,47 @@ public class SetsManagerScreen extends Screen {
         graphics.fill(x,         y + h - 1, x + w,     y + h,     PANEL_BORDER); // unten
         graphics.fill(x,         y,         x + 1,     y + h,     PANEL_BORDER); // links
         graphics.fill(x + w - 1, y,         x + w,     y + h,     PANEL_BORDER); // rechts
+    }
+
+    // ─── Tag Browser actions ─────────────────────────────────────────────
+
+    private void onToggleTagBrowser() {
+        showingTagBrowser = !showingTagBrowser;
+        showingValidation = false;
+        tagSearchBox.setVisible(showingTagBrowser);
+        tagLeftScrollOffset = 0;
+        tagRightScrollOffset = 0;
+
+        if (showingTagBrowser) {
+            tagSearchBox.setFocused(true);
+            setFocused(tagSearchBox);
+            onTagFilterChanged(tagSearchBox.getValue()); // apply current filter
+        }
+    }
+
+    private void onTagFilterChanged(String filter) {
+        String lower = filter.toLowerCase();
+        filteredTags = lower.isEmpty()
+                ? new ArrayList<>(allTags)
+                : allTags.stream()
+                .filter(t -> t.location().toString().contains(lower))
+                .collect(Collectors.toCollection(ArrayList::new));
+        tagSelectedIndex = -1;
+        tagLeftScrollOffset = 0;
+        tagRightScrollOffset = 0;
+        selectedTagItems.clear();
+    }
+
+    private void selectTag(int index) {
+        if (index < 0 || index >= filteredTags.size()) return;
+        tagSelectedIndex = index;
+        tagRightScrollOffset = 0;
+
+        TagKey<Item> tag = filteredTags.get(index);
+        selectedTagItems = BuiltInRegistries.ITEM.getOrCreateTag(tag)
+                .stream()
+                .map(Holder::value)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
 }

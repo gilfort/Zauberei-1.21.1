@@ -180,29 +180,32 @@ public class SearchableListPopup<T> extends Screen {
     // ════════════════════════════════════════════════════════════════════
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        // 1) Dim the entire background
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        // Dim overlay (nicht super aufrufen — wir wollen keinen Vanilla-BG)
         graphics.fill(0, 0, this.width, this.height, OVERLAY_DIM);
-
-        // 2) Draw popup panel (background + border)
+        // Panel background + border
         drawPanel(graphics, popupX, popupY, POPUP_WIDTH, POPUP_HEIGHT);
+    }
 
-        // 3) Title
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        // 1) super.render() ZUERST — ruft renderBackground() + Widgets auf
+        super.render(graphics, mouseX, mouseY, partialTick);
+
+        // 2) Title (NACH super, damit es über dem Panel liegt)
         graphics.drawString(this.font,
                 popupTitle.copy().withStyle(s -> s.withBold(true)),
                 popupX + PADDING, popupY + PADDING, COLOR_TEXT, false);
 
-        // 4) Render widgets (search box + buttons)
-        super.render(graphics, mouseX, mouseY, partialTick);
-
-        // 5) Render list entries
+        // 3) Render list entries
         renderList(graphics, mouseX, mouseY);
 
-        // 6) Result count
+        // 4) Result count
         String countText = filteredEntries.size() + "/" + allEntries.size();
         int countX = popupX + POPUP_WIDTH - PADDING - this.font.width(countText);
         graphics.drawString(this.font, countText, countX, popupY + PADDING + 1, COLOR_GRAY, false);
     }
+
 
     /**
      * Renders the scrollable list of filtered entries.

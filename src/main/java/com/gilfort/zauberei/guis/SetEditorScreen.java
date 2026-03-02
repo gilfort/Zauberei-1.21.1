@@ -66,14 +66,15 @@ public class SetEditorScreen extends Screen {
                 .toPath()
                 .resolve("config")
                 .resolve("zauberei")
-                .resolve("set-armor");
+                .resolve("set_armor");
     }
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     // ──── Data ──────────────────────────────────────────────────────────
     private final Screen parentScreen;
-    private final String setId;           // filename without .json
-    private final String displayName;     // shown in title
+    private final String setId;
+    private final String displayName;
+    private final SetEditorData editorData;
 
     /**
      * Working copy of the set data — one PartData per part index (0=1Part … 3=4Part).
@@ -116,6 +117,7 @@ public class SetEditorScreen extends Screen {
         this.displayName  = displayName;
         this.partEffects    = new ArrayList[PARTS];
         this.partAttributes = new LinkedHashMap[PARTS];
+        this.editorData = null;
         for (int i = 0; i < PARTS; i++) {
             partEffects[i]    = new ArrayList<>();
             partAttributes[i] = new LinkedHashMap<>();
@@ -134,7 +136,7 @@ public class SetEditorScreen extends Screen {
         this.displayName  = existing.getDisplayName() != null ? existing.getDisplayName() : setId;
         this.partEffects    = new ArrayList[PARTS];
         this.partAttributes = new LinkedHashMap[PARTS];
-
+        this.editorData = null;
         for (int i = 0; i < PARTS; i++) {
             partEffects[i]    = new ArrayList<>();
             partAttributes[i] = new LinkedHashMap<>();
@@ -176,7 +178,7 @@ public class SetEditorScreen extends Screen {
 
         this.partEffects    = new ArrayList[PARTS];
         this.partAttributes = new LinkedHashMap[PARTS];
-
+        this.editorData = null;
         for (int i = 0; i < PARTS; i++) {
             partEffects[i]    = new ArrayList<>();
             partAttributes[i] = new LinkedHashMap<>();
@@ -213,10 +215,11 @@ public class SetEditorScreen extends Screen {
     protected void init() {
         super.init();
 
-        int tabsTop    = PADDING + 14; // below title
+        int tabsTop    = PADDING + 14;
         contentTop     = tabsTop + TAB_HEIGHT + 4;
         int btnH       = 20;
-        contentBottom  = this.height - PADDING - btnH - 4;
+        int statusH    = 14;
+        contentBottom  = this.height - PADDING - btnH - 4 - statusH - 2;
 
         // Two panels side by side
         int totalW     = this.width - 2 * PADDING;
@@ -303,15 +306,13 @@ public class SetEditorScreen extends Screen {
         renderPanel(g, leftPanelX,  contentTop, leftPanelW,  contentBottom - contentTop, "Effects",    true,  mouseX, mouseY);
         renderPanel(g, rightPanelX, contentTop, rightPanelW, contentBottom - contentTop, "Attributes", false, mouseX, mouseY);
 
-        // 5. Status message — ZULETZT, damit sie immer sichtbar ist
         if (!statusMessage.isEmpty()) {
             int color = statusIsError ? 0xFFFF4444 : 0xFF44CC44;
-            int statusY = this.height - PADDING - 10; // ganz unten, immer sichtbar
-            // Kleiner Hintergrund-Streifen für Lesbarkeit
+            int statusY = this.height - PADDING - 2;  // ganz unten
             int msgW = this.font.width(statusMessage) + 8;
             int msgX = this.width / 2 - msgW / 2;
-            g.fill(msgX - 2, statusY - 2, msgX + msgW + 2, statusY + 10, 0xAA000000);
-            g.drawString(this.font, statusMessage, msgX + 4, statusY, color, false);
+            g.fill(msgX - 2, statusY - 10, msgX + msgW + 2, statusY + 2, 0xAA000000);
+            g.drawString(this.font, statusMessage, msgX + 4, statusY - 8, color, false);
         }
     }
 
@@ -648,19 +649,33 @@ public class SetEditorScreen extends Screen {
             }
             data.setParts(partsMap);
 
-            // ✅ Korrekter Pfad: relativ zum Minecraft-Spielverzeichnis
-            Path saveDir = getSaveDir();
-            Files.createDirectories(saveDir);
+            // Pfad berechnen: Base-Dir + Unterordner aus EditorData
+            Path baseDir = getSaveDir();
+            Path file;
 
-            Path file = saveDir.resolve(setId + ".json");
+            if (editorData != null) {
+                // Wizard-Modus: resolveFilePath() liefert z.B.
+                //   "naturalist/3/zauberei__magiccloth_armor.json"
+                //   "all_majors_all_years/zauberei__magiccloth_armor.json"
+                String relativePath = editorData.resolveFilePath();
+                file = baseDir.resolve(relativePath);
+            } else {
+                // Legacy Create/Edit-Modus: direkt in set-armor
+                file = baseDir.resolve(setId + ".json");
+            }
+
+            // Übergeordnete Verzeichnisse erstellen (inkl. major/year Unterordner)
+            Files.createDirectories(file.getParent());
+
             String json = GSON.toJson(data);
             Files.writeString(file, json);
 
-            setStatus("✔ Saved to " + file.getFileName(), false);
+            setStatus("✔ Saved to " + baseDir.relativize(file), false);
         } catch (IOException e) {
             setStatus("✘ Save failed: " + e.getMessage(), true);
         }
-}
+    }
+
 
     // ════════════════════════════════════════════════════════════════════
     //  Helpers

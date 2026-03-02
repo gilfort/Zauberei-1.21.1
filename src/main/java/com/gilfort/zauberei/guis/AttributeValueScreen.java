@@ -19,7 +19,7 @@ public class AttributeValueScreen extends Screen {
 
     private static final int PANEL_BG     = 0xFFF5F0E0;
     private static final int PANEL_BORDER = 0xFF8B7355;
-    private static final int W = 220, H = 120;
+    private static final int W = 220, H = 140;
 
     // NeoForge 1.21.1 attribute modifier operations
     private static final List<String> MODIFIERS = List.of(
@@ -55,12 +55,12 @@ public class AttributeValueScreen extends Screen {
 
         // Modifier cycle button
         addRenderableWidget(Button.builder(
-                        Component.literal("◀ " + MODIFIERS.get(selectedModifier) + " ▶"),
+                        Component.literal("◆ " + MODIFIERS.get(selectedModifier) + " ◆"),
                         btn -> {
                             selectedModifier = (selectedModifier + 1) % MODIFIERS.size();
-                            btn.setMessage(Component.literal("◀ " + MODIFIERS.get(selectedModifier) + " ▶"));
+                            btn.setMessage(Component.literal("◆ " + MODIFIERS.get(selectedModifier) + " ◆"));
                         })
-                .bounds(px + 8, py + 62, W - 16, 16).build());
+                .bounds(px + 8, py + 74, W - 16, 16).build());
 
         addRenderableWidget(Button.builder(Component.literal("OK"), btn -> confirm())
                 .bounds(px + W / 2 - 42, py + H - 24, 38, 16).build());
@@ -69,20 +69,29 @@ public class AttributeValueScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics g, int mouseX, int mouseY, float pt) {
+    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         g.fill(0, 0, this.width, this.height, 0x88000000);
+        // Panel background + border
         int px = (this.width - W) / 2, py = (this.height - H) / 2;
         g.fill(px, py, px + W, py + H, PANEL_BG);
         g.fill(px, py, px + W, py + 1, PANEL_BORDER);
         g.fill(px, py + H - 1, px + W, py + H, PANEL_BORDER);
         g.fill(px, py, px + 1, py + H, PANEL_BORDER);
         g.fill(px + W - 1, py, px + W, py + H, PANEL_BORDER);
+    }
 
+    @Override
+    public void render(GuiGraphics g, int mouseX, int mouseY, float pt) {
+        // 1) super.render() ZUERST — ruft renderBackground() + Widgets auf
+        super.render(g, mouseX, mouseY, pt);
+
+        // 2) Text DANACH — liegt über dem Panel, sichtbar
+        int px = (this.width - W) / 2, py = (this.height - H) / 2;
         g.drawString(this.font, "Value for:", px + 8, py + 8, 0xFF000000, false);
         g.drawString(this.font, attrId, px + 8, py + 20, 0xFF555555, false);
-        g.drawString(this.font, "Modifier type:", px + 8, py + 56, 0xFF000000, false);
-        super.render(g, mouseX, mouseY, pt);
+        g.drawString(this.font, "Modifier type:", px + 8, py + 62, 0xFF000000, false);
     }
+
 
     private void confirm() {
         try {

@@ -381,7 +381,6 @@ public class SetWizardScreen extends Screen {
     private void proceedToStep2(SetEditorData editorData) {
         assert this.minecraft != null;
         this.minecraft.setScreen(new SetEditorScreen(this, editorData));
-
     }
 
     // ══════════════════════════════════════════════════════════════════

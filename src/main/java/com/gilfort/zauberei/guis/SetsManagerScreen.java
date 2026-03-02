@@ -1103,6 +1103,5 @@ public class SetsManagerScreen extends Screen {
                 .map(Holder::value)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
-
 }
 

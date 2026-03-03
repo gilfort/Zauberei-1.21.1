@@ -59,6 +59,17 @@ public class SetEditorScreen extends Screen {
     private static final int SECTION_TITLE_H= 12;
     private static final int PARTS          = 4; // 1Part … 4Part
 
+    // ── Inline-Editing State ──────────────────────────────────────────
+    private enum InlineEditTarget { NONE, EFFECT_AMP, ATTR_VALUE, ATTR_MODIFIER }
+    private InlineEditTarget inlineEditTarget = InlineEditTarget.NONE;
+    private int inlineEditIndex = -1;
+    private EditBox inlineEditBox = null;       // nur für AMP und VALUE
+    private String inlineOldValue = "";         // Anzeige des alten Werts
+    private int overlayX, overlayY, overlayW;   // Overlay-Position (für Klick-Erkennung)
+    private int editBoxX;                       // X-Position des Edit-Bereichs (rechts vom Pfeil)
+
+
+
     // ──── Save path ─────────────────────────────────────────────────────
     private Path getSaveDir() {
         return net.minecraft.client.Minecraft.getInstance()
@@ -97,6 +108,9 @@ public class SetEditorScreen extends Screen {
     private int rightPanelX, rightPanelW;
     private int panelListTop, panelListH;
     private int maxEffectVisible, maxAttrVisible;
+    // ──── Attribute column layout (computed in init) ───────────────────
+    private int attrModColW, attrValColW, attrNameColW;
+
 
     // ──── Status message ────────────────────────────────────────────────
     private String statusMessage = "";
@@ -178,7 +192,7 @@ public class SetEditorScreen extends Screen {
 
         this.partEffects    = new ArrayList[PARTS];
         this.partAttributes = new LinkedHashMap[PARTS];
-        this.editorData = null;
+        this.editorData = editorData;
         for (int i = 0; i < PARTS; i++) {
             partEffects[i]    = new ArrayList<>();
             partAttributes[i] = new LinkedHashMap<>();
@@ -233,33 +247,52 @@ public class SetEditorScreen extends Screen {
         panelListH     = contentBottom - panelListTop - PADDING;
         maxEffectVisible = panelListH / ITEM_HEIGHT;
         maxAttrVisible   = panelListH / ITEM_HEIGHT;
+        // Attribute column widths (fixed, so click zones don't jump)
+        attrModColW = this.font.width("multiply_total") + 8;
+        attrValColW = this.font.width("+00000.00") + 8;
+        attrNameColW = (rightPanelW - 2 * PADDING) - attrValColW - attrModColW;
+
 
         // ── Buttons ──────────────────────────────────────────────────────
         int btnY = contentBottom + 4;
 
         // Add Effect
         addRenderableWidget(Button.builder(
-                        Component.literal("+ Effect"), btn -> openAddEffectPopup())
+                        Component.literal("+ Effect").withStyle(ChatFormatting.DARK_GREEN, ChatFormatting.BOLD),
+                        btn -> openAddEffectPopup())
                 .bounds(leftPanelX, contentTop + PADDING + SECTION_TITLE_H + 4, leftPanelW / 2 - 2, 18)
                 .build());
 
-        // Remove Effect
+// Remove Effect
         addRenderableWidget(Button.builder(
-                        Component.literal("- Remove"), btn -> removeSelectedEffect())
+                        Component.literal("- Remove").withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD),
+                        btn -> removeSelectedEffect())
                 .bounds(leftPanelX + leftPanelW / 2 + 2, contentTop + PADDING + SECTION_TITLE_H + 4, leftPanelW / 2 - 2, 18)
                 .build());
 
-        // Add Attribute
+// Add Attribute
         addRenderableWidget(Button.builder(
-                        Component.literal("+ Attribute"), btn -> openAddAttributePopup())
+                        Component.literal("+ Attribute").withStyle(ChatFormatting.DARK_GREEN, ChatFormatting.BOLD),
+                        btn -> openAddAttributePopup())
                 .bounds(rightPanelX, contentTop + PADDING + SECTION_TITLE_H + 4, rightPanelW / 2 - 2, 18)
                 .build());
 
-        // Remove Attribute
+// Remove Attribute
         addRenderableWidget(Button.builder(
-                        Component.literal("- Remove"), btn -> removeSelectedAttribute())
+                        Component.literal("- Remove").withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD),
+                        btn -> removeSelectedAttribute())
                 .bounds(rightPanelX + rightPanelW / 2 + 2, contentTop + PADDING + SECTION_TITLE_H + 4, rightPanelW / 2 - 2, 18)
                 .build());
+
+                // Copy from another Part
+                int copyBtnX = PADDING + PARTS * (TAB_WIDTH + 2) + 8;
+                int copyBtnY = PADDING + 14 + 2; // gleiche Höhe wie Tabs
+                addRenderableWidget(Button.builder(
+                        Component.literal("Copy from\u2026"),
+                        btn -> openCopyFromPartPopup())
+                .bounds(copyBtnX, copyBtnY, 70, TAB_HEIGHT - 4)
+                .build());
+
 
         // Save
         addRenderableWidget(Button.builder(
@@ -272,6 +305,160 @@ public class SetEditorScreen extends Screen {
                         Component.literal("Cancel"), btn -> onClose())
                 .bounds(this.width / 2 + 4, btnY, 80, btnH)
                 .build());
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+//  Inline Editing — Overlay-Based
+// ═══════════════════════════════════════════════════════════════════
+
+    private void startInlineEditEffectAmp(int index, int panelX, int panelW) {
+        cancelInlineEdit();
+        if (index < 0 || index >= partEffects[activeTab].size()) return;
+
+        EffectData ed = partEffects[activeTab].get(index);
+        inlineEditTarget = InlineEditTarget.EFFECT_AMP;
+        inlineEditIndex = index;
+        inlineOldValue = String.valueOf(ed.getAmplifier());
+
+        // Overlay over the right 45px of the effect row
+        int ampZoneW = 45;
+        overlayX = panelX + panelW - ampZoneW;
+        overlayY = panelListTop + (index - effectScrollOffset) * ITEM_HEIGHT;
+        overlayW = ampZoneW;
+
+        // Left half: old value | Right half: EditBox
+        int halfW = overlayW / 2;
+        editBoxX = overlayX + halfW;
+
+        inlineEditBox = new EditBox(this.font, editBoxX + 1, overlayY, halfW - 2, ITEM_HEIGHT,
+                Component.literal("amp"));
+        inlineEditBox.setMaxLength(2);
+        inlineEditBox.setValue("");  // start empty
+        inlineEditBox.setTextColor(0xFF44FF44);
+        inlineEditBox.setFocused(true);
+        addRenderableWidget(inlineEditBox);
+        setFocused(inlineEditBox);
+    }
+
+    private void startInlineEditAttrValue(int index, int colX, int colW) {
+        cancelInlineEdit();
+        List<Map.Entry<String, AttributeData>> entries =
+                new ArrayList<>(partAttributes[activeTab].entrySet());
+        if (index < 0 || index >= entries.size()) return;
+
+        AttributeData ad = entries.get(index).getValue();
+        inlineEditTarget = InlineEditTarget.ATTR_VALUE;
+        inlineEditIndex = index;
+        String sign = ad.getValue() >= 0 ? "+" : "";
+        inlineOldValue = sign + String.format("%.2f", ad.getValue());
+
+        // Overlay spans BOTH value + modifier columns
+        overlayX = colX;
+        overlayY = panelListTop + (index - attributeScrollOffset) * ITEM_HEIGHT;
+        overlayW = colW + attrModColW;  // both columns
+
+        // Left half: old value | Right half: EditBox
+        int halfW = overlayW / 2;
+        editBoxX = overlayX + halfW;
+
+        inlineEditBox = new EditBox(this.font, editBoxX + 1, overlayY, halfW - 2, ITEM_HEIGHT,
+                Component.literal("val"));
+        inlineEditBox.setMaxLength(10);
+        inlineEditBox.setValue("");  // start empty
+        inlineEditBox.setTextColor(0xFF44FF44);
+        inlineEditBox.setFocused(true);
+        addRenderableWidget(inlineEditBox);
+        setFocused(inlineEditBox);
+    }
+
+    private void startInlineEditAttrModifier(int index, int colX, int colW) {
+        cancelInlineEdit();
+        List<Map.Entry<String, AttributeData>> entries =
+                new ArrayList<>(partAttributes[activeTab].entrySet());
+        if (index < 0 || index >= entries.size()) return;
+
+        AttributeData ad = entries.get(index).getValue();
+        String mod = ad.getModifier() == null ? "add" : ad.getModifier();
+        inlineEditTarget = InlineEditTarget.ATTR_MODIFIER;
+        inlineEditIndex = index;
+        inlineOldValue = mod;
+
+        // Overlay spans BOTH value + modifier columns (same as value edit)
+        int valColX = colX - attrValColW;
+        overlayX = valColX;
+        overlayY = panelListTop + (index - attributeScrollOffset) * ITEM_HEIGHT;
+        overlayW = attrValColW + colW;  // both columns
+
+        // Left half: old value | Right half: clickable box
+        int halfW = overlayW / 2;
+        editBoxX = overlayX + halfW;
+
+        // Cycle once on first click
+        cycleAttributeModifier(index);
+    }
+
+
+
+    private void confirmInlineEdit() {
+        if (inlineEditTarget == InlineEditTarget.NONE) return;
+
+        if (inlineEditBox != null) {
+            String text = inlineEditBox.getValue().trim();
+            switch (inlineEditTarget) {
+                case EFFECT_AMP -> {
+                    try {
+                        int amp = Math.max(0, Math.min(9, Integer.parseInt(text)));
+                        if (inlineEditIndex < partEffects[activeTab].size()) {
+                            partEffects[activeTab].get(inlineEditIndex).setAmplifier(amp);
+                            setStatus("\u2714 Amplifier \u2192 " + amp, false);
+                        }
+                    } catch (NumberFormatException e) {
+                        setStatus("Invalid number!", true);
+                    }
+                }
+                case ATTR_VALUE -> {
+                    try {
+                        double val = Double.parseDouble(text);
+                        List<Map.Entry<String, AttributeData>> entries =
+                                new ArrayList<>(partAttributes[activeTab].entrySet());
+                        if (inlineEditIndex < entries.size()) {
+                            entries.get(inlineEditIndex).getValue().setValue(val);
+                            setStatus("\u2714 Value \u2192 " + val, false);
+                        }
+                    } catch (NumberFormatException e) {
+                        setStatus("Invalid number!", true);
+                    }
+                }
+                default -> {}
+            }
+        }
+        cancelInlineEdit();
+    }
+
+    private void cancelInlineEdit() {
+        if (inlineEditBox != null) {
+            removeWidget(inlineEditBox);
+            inlineEditBox = null;
+        }
+        inlineEditTarget = InlineEditTarget.NONE;
+        inlineEditIndex = -1;
+        inlineOldValue = "";
+    }
+
+    private void cycleAttributeModifier(int index) {
+        List<Map.Entry<String, AttributeData>> entries =
+                new ArrayList<>(partAttributes[activeTab].entrySet());
+        if (index < 0 || index >= entries.size()) return;
+
+        AttributeData ad = entries.get(index).getValue();
+        String current = ad.getModifier() == null ? "add" : ad.getModifier().toLowerCase();
+        String next = switch (current) {
+            case "add" -> "multiply_base";
+            case "multiply_base" -> "multiply_total";
+            default -> "add";
+        };
+        ad.setModifier(next);
+        setStatus("\u2714 Modifier \u2192 " + next, false);
     }
 
     // ════════════════════════════════════════════════════════════════════
@@ -302,9 +489,13 @@ public class SetEditorScreen extends Screen {
         // 3. Tabs
         renderTabs(g, mouseX, mouseY);
 
-        // 4. Panels (über den Buttons, aber unter dem Status)
+        // 4. Panels
         renderPanel(g, leftPanelX,  contentTop, leftPanelW,  contentBottom - contentTop, "Effects",    true,  mouseX, mouseY);
         renderPanel(g, rightPanelX, contentTop, rightPanelW, contentBottom - contentTop, "Attributes", false, mouseX, mouseY);
+
+        // 5. Inline edit overlay (on top of everything)
+        renderInlineEditOverlay(g);
+
 
         if (!statusMessage.isEmpty()) {
             int color = statusIsError ? 0xFFFF4444 : 0xFF44CC44;
@@ -371,6 +562,65 @@ public class SetEditorScreen extends Screen {
         }
     }
 
+    /**
+     * Renders the dark inline-edit overlay bar on top of the active entry.
+     * Shows: "old value" → [editable area]
+     */
+    private void renderInlineEditOverlay(GuiGraphics g) {
+        if (inlineEditTarget == InlineEditTarget.NONE) return;
+
+        // ── Dark overlay background with gold border ──
+        g.fill(overlayX - 1, overlayY - 1, overlayX + overlayW + 1, overlayY + ITEM_HEIGHT + 1, 0xFFDAA520);
+        g.fill(overlayX, overlayY, overlayX + overlayW, overlayY + ITEM_HEIGHT, 0xEE2A2A2A);
+
+        int textY = overlayY + 3;
+        int halfW = overlayW / 2;
+
+        // ── Left half: original value in muted gray ──
+        // Truncate if needed
+        String oldDisplay = inlineOldValue;
+        int maxOldW = halfW - 8;
+        if (this.font.width(oldDisplay) > maxOldW) {
+            while (this.font.width(oldDisplay + "..") > maxOldW && oldDisplay.length() > 2) {
+                oldDisplay = oldDisplay.substring(0, oldDisplay.length() - 1);
+            }
+            oldDisplay += "..";
+        }
+        g.drawString(this.font, oldDisplay, overlayX + 4, textY, 0xFF999999, false);
+
+        // ── Arrow " → " centered at the split ──
+        String arrow = "\u2192";
+        int arrowW = this.font.width(arrow);
+        g.drawString(this.font, arrow, overlayX + halfW - arrowW / 2, textY, 0xFFDAA520, false);
+
+        // ── Right half: for ATTR_MODIFIER draw clickable box ──
+        if (inlineEditTarget == InlineEditTarget.ATTR_MODIFIER) {
+            List<Map.Entry<String, AttributeData>> entries =
+                    new ArrayList<>(partAttributes[activeTab].entrySet());
+            if (inlineEditIndex < entries.size()) {
+                AttributeData ad = entries.get(inlineEditIndex).getValue();
+                String currentMod = ad.getModifier() == null ? "add" : ad.getModifier();
+
+                int boxX = editBoxX;
+                int boxW = halfW;
+
+                // Box background
+                g.fill(boxX, overlayY + 1, boxX + boxW - 1, overlayY + ITEM_HEIGHT - 1, 0xFF444444);
+
+                // New modifier value in green, same textY
+                g.drawString(this.font, currentMod, boxX + 4, textY, 0xFF44FF44, false);
+
+                // Cycle hint right-aligned
+                int hintX = boxX + boxW - this.font.width("\u21BB") - 5;
+                g.drawString(this.font, "\u21BB", hintX, textY, 0xFF888888, false);
+            }
+        }
+        // EditBox renders itself via widgets — no extra drawing needed for AMP/VALUE
+    }
+
+
+
+
     private void renderEffectList(GuiGraphics g, int mouseX, int mouseY) {
         List<EffectData> effects = partEffects[activeTab];
         int lx = leftPanelX + PADDING;
@@ -414,6 +664,11 @@ public class SetEditorScreen extends Screen {
         int ly = panelListTop;
         int lw = rightPanelW - 2 * PADDING;
 
+        int modColW = attrModColW;
+        int valColW = attrValColW;
+        int nameColW = attrNameColW;
+
+
         g.enableScissor(lx, ly, lx + lw, ly + panelListH);
 
         if (entries.isEmpty()) {
@@ -433,17 +688,38 @@ public class SetEditorScreen extends Screen {
                     g.fill(lx, ay, lx + lw, ay + ITEM_HEIGHT, COLOR_HOVER);
                 }
 
-                // Format: "generic.max_health  +5.0 (add)"
+                // Column 1: Name (left-aligned)
                 String attrName = shortName(entry.getKey());
-                String valStr = formatAttrValue(ad);
+                int maxNameW = nameColW - 6;
+                if (this.font.width(attrName) > maxNameW) {
+                    while (this.font.width(attrName + "..") > maxNameW && attrName.length() > 3) {
+                        attrName = attrName.substring(0, attrName.length() - 1);
+                    }
+                    attrName += "..";
+                }
                 g.drawString(this.font, attrName, lx + 3, ay + 3, COLOR_TEXT, false);
-                int valX = lx + lw - this.font.width(valStr) - 3;
-                g.drawString(this.font, valStr, valX, ay + 3, COLOR_GRAY, false);
+
+                // Column 2: Value (right-aligned in its column)
+                String sign = ad.getValue() >= 0 ? "+" : "";
+                String valText = sign + String.format("%.2f", ad.getValue());
+                int valColX = lx + nameColW;
+                int valTextX = valColX + valColW - this.font.width(valText) - 4;
+                g.drawString(this.font, valText, valTextX, ay + 3, COLOR_GRAY, false);
+
+                // Column 3: Modifier (left-aligned in its column)
+                String modText = ad.getModifier() == null ? "add" : ad.getModifier();
+                int modColX = lx + nameColW + valColW;
+                g.drawString(this.font, modText, modColX + 3, ay + 3, 0xFF887744, false);
+
+                // Subtle column dividers
+                g.fill(valColX, ay + 1, valColX + 1, ay + ITEM_HEIGHT - 1, 0x22000000);
+                g.fill(modColX, ay + 1, modColX + 1, ay + ITEM_HEIGHT - 1, 0x22000000);
             }
         }
 
         g.disableScissor();
     }
+
 
     // ════════════════════════════════════════════════════════════════════
     //  Input
@@ -451,35 +727,68 @@ public class SetEditorScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Tab clicks
+        // ── Active inline edit? ──
+        if (inlineEditTarget != InlineEditTarget.NONE) {
+            // Check if click is inside the overlay
+            boolean insideOverlay = mouseX >= overlayX && mouseX <= overlayX + overlayW
+                    && mouseY >= overlayY - 1 && mouseY <= overlayY + ITEM_HEIGHT + 1;
+
+            if (inlineEditTarget == InlineEditTarget.ATTR_MODIFIER) {
+                if (insideOverlay && mouseX >= editBoxX) {
+                    // Click on right half → cycle again
+                    cycleAttributeModifier(inlineEditIndex);
+                    return true;
+                }
+                // Click anywhere else → confirm and close
+                confirmInlineEdit();
+                // DON'T fall through — prevent accidental clicks
+                return true;
+            }
+
+            // AMP / VALUE edits
+            if (insideOverlay) {
+                // Click inside overlay → let EditBox handle
+                return super.mouseClicked(mouseX, mouseY, button);
+            }
+            // Click outside → CONFIRM (not cancel!)
+            confirmInlineEdit();
+            return true;
+        }
+
+        // ── Tab clicks ──
         int tabsTop = PADDING + 14;
         for (int i = 0; i < PARTS; i++) {
             int tx = PADDING + i * (TAB_WIDTH + 2);
             if (mouseX >= tx && mouseX <= tx + TAB_WIDTH
                     && mouseY >= tabsTop && mouseY <= tabsTop + TAB_HEIGHT) {
+                cancelInlineEdit();
                 activeTab = i;
-                selectedEffectIndex    = -1;
+                selectedEffectIndex = -1;
                 selectedAttributeIndex = -1;
-                effectScrollOffset     = 0;
-                attributeScrollOffset  = 0;
+                effectScrollOffset = 0;
+                attributeScrollOffset = 0;
                 return true;
             }
         }
 
-        // Effect list click
+        // ── Effect list click ──
         int lx = leftPanelX + PADDING;
         int lw = leftPanelW - 2 * PADDING;
         if (mouseX >= lx && mouseX <= lx + lw
                 && mouseY >= panelListTop && mouseY <= panelListTop + panelListH) {
             int idx = (int) ((mouseY - panelListTop) / ITEM_HEIGHT) + effectScrollOffset;
             if (idx >= 0 && idx < partEffects[activeTab].size()) {
-                selectedEffectIndex    = idx;
-                selectedAttributeIndex = -1;
+                if (mouseX >= lx + lw - 45) {
+                    startInlineEditEffectAmp(idx, lx, lw);
+                } else {
+                    selectedEffectIndex = idx;
+                    selectedAttributeIndex = -1;
+                }
             }
             return true;
         }
 
-        // Attribute list click
+        // ── Attribute list click — fixed column zones ──
         int rx = rightPanelX + PADDING;
         int rw = rightPanelW - 2 * PADDING;
         if (mouseX >= rx && mouseX <= rx + rw
@@ -488,14 +797,25 @@ public class SetEditorScreen extends Screen {
                     new ArrayList<>(partAttributes[activeTab].entrySet());
             int idx = (int) ((mouseY - panelListTop) / ITEM_HEIGHT) + attributeScrollOffset;
             if (idx >= 0 && idx < entries.size()) {
-                selectedAttributeIndex = idx;
-                selectedEffectIndex    = -1;
+                int valColX = rx + attrNameColW;
+                int modColX = rx + attrNameColW + attrValColW;
+
+                if (mouseX >= modColX) {
+                    startInlineEditAttrModifier(idx, modColX, attrModColW);
+                } else if (mouseX >= valColX) {
+                    startInlineEditAttrValue(idx, valColX, attrValColW);
+                } else {
+                    selectedAttributeIndex = idx;
+                    selectedEffectIndex = -1;
+                }
             }
             return true;
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
     }
+
+
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
@@ -526,9 +846,18 @@ public class SetEditorScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == 256) { onClose(); return true; } // Escape
+        if (inlineEditTarget != InlineEditTarget.NONE) {
+            if (keyCode == 257) { confirmInlineEdit(); return true; }  // Enter
+            if (keyCode == 256) { cancelInlineEdit(); return true; }   // Escape
+            // Modifier hat kein EditBox → Escape/Enter schließt
+            if (inlineEditTarget == InlineEditTarget.ATTR_MODIFIER) return true;
+            return super.keyPressed(keyCode, scanCode, modifiers);
+        }
+        if (keyCode == 256) { onClose(); return true; }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
+
+
 
     // ════════════════════════════════════════════════════════════════════
     //  Popup flows — Add Effect
@@ -605,6 +934,68 @@ public class SetEditorScreen extends Screen {
             setStatus("Attribute added!", false);
         }));
     }
+
+    /**
+     * Opens a popup to select which part to copy effects & attributes FROM
+     * into the currently active tab.
+     */
+    private void openCopyFromPartPopup() {
+        List<SearchableListPopup.Entry<Integer>> entries = new ArrayList<>();
+
+        for (int i = 0; i < PARTS; i++) {
+            if (i == activeTab) continue;
+            int effectCount = partEffects[i].size();
+            int attrCount = partAttributes[i].size();
+            String label = (i + 1) + " Part  ("
+                    + effectCount + " effect" + (effectCount != 1 ? "s" : "") + ", "
+                    + attrCount + " attr" + (attrCount != 1 ? "s" : "") + ")";
+            entries.add(new SearchableListPopup.Entry<>(i, Component.literal(label)));
+        }
+
+        assert this.minecraft != null;
+        this.minecraft.setScreen(new SearchableListPopup<>(
+                Component.literal("Copy into " + (activeTab + 1) + " Part from:"),
+                this,
+                entries,
+                source -> copyPartData(source, activeTab)
+        ));
+    }
+
+
+    /**
+     * Copies all effects and attributes from one part to another.
+     * Replaces existing data in the target part.
+     */
+    private void copyPartData(int source, int target) {
+        // Clear target
+        partEffects[target].clear();
+        partAttributes[target].clear();
+
+        // Deep-copy effects
+        for (EffectData ed : partEffects[source]) {
+            EffectData copy = new EffectData();
+            copy.setEffect(ed.getEffect());
+            copy.setAmplifier(ed.getAmplifier());
+            partEffects[target].add(copy);
+        }
+
+        // Deep-copy attributes
+        for (Map.Entry<String, AttributeData> entry : partAttributes[source].entrySet()) {
+            AttributeData ad = new AttributeData();
+            ad.setValue(entry.getValue().getValue());
+            ad.setModifier(entry.getValue().getModifier());
+            partAttributes[target].put(entry.getKey(), ad);
+        }
+
+        // Reset selection
+        selectedEffectIndex = -1;
+        selectedAttributeIndex = -1;
+        effectScrollOffset = 0;
+        attributeScrollOffset = 0;
+
+        setStatus("✔ Copied from " + (source + 1) + " Part → " + (target + 1) + " Part", false);
+    }
+
 
     // ════════════════════════════════════════════════════════════════════
     //  Remove

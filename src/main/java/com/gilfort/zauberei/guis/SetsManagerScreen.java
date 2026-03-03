@@ -932,11 +932,13 @@ public class SetsManagerScreen extends Screen {
         if (entry.type() != ListEntry.EntryType.SCOPE_ENTRY || entry.data() == null) return;
 
         assert this.minecraft != null;
-        // Phase 4: SetEditorScreen mit bestehendem Set öffnen
-        // this.minecraft.setScreen(new SetEditorScreen(this, entry, entry.data()));
 
-        // Temporär bis SetEditorScreen existiert:
-        // (Platzhalter entfernen, wenn SetEditorScreen implementiert ist)
+        // SetEditorData aus bestehendem Set aufbauen (inkl. Major/Year für korrekten Speicherpfad)
+        SetEditorData editorData = new SetEditorData();
+        editorData.loadFrom(entry.tag(), entry.major(), entry.year(), entry.data());
+
+        // Wizard-Konstruktor nutzen → editorData bleibt erhalten → Unterordner stimmen beim Speichern
+        this.minecraft.setScreen(new SetEditorScreen(this, editorData));
     }
 
     private void onReload() {

@@ -192,7 +192,14 @@ public class ArmorEffects {
                     operation
             );
 
-            attributeInstance.addTransientModifier(modifier);
+            AttributeModifier existing = attributeInstance.getModifier(modifier.id());
+            if (existing == null) {
+                attributeInstance.addTransientModifier(modifier);
+            } else if (existing.amount() != modifier.amount()
+                    || existing.operation() != modifier.operation()) {
+                attributeInstance.removeModifier(modifier.id());
+                attributeInstance.addTransientModifier(modifier);
+            }
         }
     }
 

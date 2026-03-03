@@ -212,7 +212,7 @@ public class SetsManagerScreen extends Screen {
         int buttonH = 20;
         int buttonY = margin + contentH + 4;
         int buttonSpacing = 8;
-        int totalButtonsW = buttonW * 4 + buttonSpacing * 3; // jetzt 4 Buttons
+        int totalButtonsW = buttonW * 6 + buttonSpacing * 5;
         int buttonStartX = (this.width - totalButtonsW) / 2;
 
         addRenderableWidget(Button.builder(Component.literal("Reload"), btn -> onReload())
@@ -221,8 +221,13 @@ public class SetsManagerScreen extends Screen {
                 .bounds(buttonStartX + (buttonW + buttonSpacing), buttonY, buttonW, buttonH).build());
         addRenderableWidget(Button.builder(Component.literal("Tags"), btn -> onToggleTagBrowser())
                 .bounds(buttonStartX + (buttonW + buttonSpacing) * 2, buttonY, buttonW, buttonH).build());
-        addRenderableWidget(Button.builder(Component.literal("Close"), btn -> onClose())
+        addRenderableWidget(Button.builder(Component.literal("Edit"), btn -> onEditSet())
                 .bounds(buttonStartX + (buttonW + buttonSpacing) * 3, buttonY, buttonW, buttonH).build());
+        addRenderableWidget(Button.builder(Component.literal("Create"), btn -> onCreateSet())
+                .bounds(buttonStartX + (buttonW + buttonSpacing) * 4, buttonY, buttonW, buttonH).build());
+        addRenderableWidget(Button.builder(Component.literal("Close"), btn -> onClose())
+                .bounds(buttonStartX + (buttonW + buttonSpacing) * 5, buttonY, buttonW, buttonH).build());
+
 
 // ── Tag Search Box (unsichtbar bis Tag-Browser aktiv) ────────────
         tagSearchBox = new EditBox(this.font, leftX, leftY, leftW, 14, Component.literal("Search tags..."));
@@ -914,6 +919,28 @@ public class SetsManagerScreen extends Screen {
 
     // ─── Button actions ──────────────────────────────────────────────────
 
+    /** Opens the Set Wizard (Step 1) to create or edit a set definition. */
+    private void onCreateSet() {
+        assert this.minecraft != null;
+        this.minecraft.setScreen(new SetWizardScreen(this));
+    }
+
+    /** Opens the SetEditorScreen for the currently selected set. */
+    private void onEditSet() {
+        if (selectedIndex < 0 || selectedIndex >= listEntries.size()) return;
+        ListEntry entry = listEntries.get(selectedIndex);
+        if (entry.type() != ListEntry.EntryType.SCOPE_ENTRY || entry.data() == null) return;
+
+        assert this.minecraft != null;
+
+        // SetEditorData aus bestehendem Set aufbauen (inkl. Major/Year für korrekten Speicherpfad)
+        SetEditorData editorData = new SetEditorData();
+        editorData.loadFrom(entry.tag(), entry.major(), entry.year(), entry.data());
+
+        // Wizard-Konstruktor nutzen → editorData bleibt erhalten → Unterordner stimmen beim Speichern
+        this.minecraft.setScreen(new SetEditorScreen(this, editorData));
+    }
+
     private void onReload() {
         // Reload set definitions from config files
         ZaubereiReloadListener.loadAllEffects();
@@ -1078,6 +1105,5 @@ public class SetsManagerScreen extends Screen {
                 .map(Holder::value)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
-
 }
 

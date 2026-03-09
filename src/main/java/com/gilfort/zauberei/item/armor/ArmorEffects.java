@@ -141,11 +141,12 @@ public class ArmorEffects {
 
 
             applySetEffects(player, partData);
-            applySetAttributes(player, partData);
+            applyAttributes(player, partData, tagString);
+            ;
         }
     }
 
-    private static void applySetAttributes(Player player, ArmorSetData.PartData partData) {
+    private static void applyAttributes(Player player, ArmorSetData.PartData partData, String tagString) {
         if (partData.getAttributes() == null) {
             return;
         }
@@ -181,7 +182,7 @@ public class ArmorEffects {
                 continue;
             }
 
-            ResourceLocation modifierId = makeModifierId(attributeName);
+            ResourceLocation modifierId = makeModifierId(attributeName, value.getModifier().toLowerCase(), tagString);
             if (modifierId == null) {
                 continue;
             }
@@ -240,15 +241,25 @@ public class ArmorEffects {
         return BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(optionalKey.get());
     }
 
-    public static ResourceLocation makeModifierId(String attributeName) {
+    public static ResourceLocation makeModifierId(String attributeName, String operation, String setScope) {
         int index = attributeName.indexOf(":");
         if (index == -1) {
             return null;
         }
-        attributeName = attributeName.substring(index + 1);
-        String path = attributeName + "_bonus";
+        String attrPath = attributeName.substring(index + 1);
+        String sanitizedScope = sanitizeForResourceLocation(setScope);
+        String path = attrPath + "_" + operation + "_" + sanitizedScope;
         return ResourceLocation.fromNamespaceAndPath(Zauberei.MODID, path);
     }
+
+    private static String sanitizeForResourceLocation(String input) {
+        if (input == null) return "unknown";
+        return input.toLowerCase()
+                .replaceAll("[^a-z0-9_/.-]", "_")
+                .replaceAll("_+", "_")
+                .replaceAll("^_|_$", "");
+    }
+
 
     private static void applySetEffects(Player player, ArmorSetData.PartData partData) {
         if (partData.getEffects() == null) {

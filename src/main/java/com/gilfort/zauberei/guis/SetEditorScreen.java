@@ -378,7 +378,7 @@ public class SetEditorScreen extends Screen {
         if (index < 0 || index >= entries.size()) return;
 
         AttributeData ad = entries.get(index).getValue();
-        String mod = ad.getModifier() == null ? "add" : ad.getModifier();
+        String mod = ad.getModifier() == null ? "addition" : ad.getModifier();
         inlineEditTarget = InlineEditTarget.ATTR_MODIFIER;
         inlineEditIndex = index;
         inlineOldValue = mod;
@@ -451,11 +451,11 @@ public class SetEditorScreen extends Screen {
         if (index < 0 || index >= entries.size()) return;
 
         AttributeData ad = entries.get(index).getValue();
-        String current = ad.getModifier() == null ? "add" : ad.getModifier().toLowerCase();
+        String current = ad.getModifier() == null ? "addition" : ad.getModifier().toLowerCase();
         String next = switch (current) {
-            case "add" -> "multiply_base";
+            case "addition" -> "multiply_base";
             case "multiply_base" -> "multiply_total";
-            default -> "add";
+            default -> "addition";
         };
         ad.setModifier(next);
         setStatus("\u2714 Modifier \u2192 " + next, false);

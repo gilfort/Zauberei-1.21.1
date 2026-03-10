@@ -272,11 +272,10 @@ public class SetsManagerScreen extends Screen {
 
             // Add scope entries, sorted: universal → all_majors → specific
             List<ArmorSetDataRegistry.SetEntry> sorted = group.getValue().stream()
-                    .sorted((a, b) -> {
-                        int prioA = scopePriority(a);
-                        int prioB = scopePriority(b);
-                        return Integer.compare(prioA, prioB);
-                    })
+                    .sorted(Comparator
+                            .comparingInt(SetsManagerScreen::scopePriority)
+                            .thenComparing(ArmorSetDataRegistry.SetEntry::major)
+                            .thenComparingInt(ArmorSetDataRegistry.SetEntry::year))
                     .collect(Collectors.toCollection(ArrayList::new));
 
             for (ArmorSetDataRegistry.SetEntry se : sorted) {

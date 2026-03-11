@@ -5,13 +5,10 @@ import net.minecraft.world.item.ItemStack;
 
 public class ZaubereiUtils {
 
-    public static void giveorDrop(ServerPlayer player, ItemStack stack){
+    public static void giveOrDrop(ServerPlayer player, ItemStack stack){
         boolean success = player.getInventory().add(stack);
         if(!success){
             player.drop(stack, false);
         }
     }
-
-
-
 }

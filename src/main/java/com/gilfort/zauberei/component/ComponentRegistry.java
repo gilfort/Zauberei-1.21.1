@@ -31,17 +31,4 @@ public class ComponentRegistry {
                             .persistent(Unit.CODEC)
                             .networkSynchronized(StreamCodec.unit(Unit.INSTANCE)).cacheEncoding());
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> MAJOR =
-            register("major",
-                    b -> b.persistent(Codec.STRING)
-                            .networkSynchronized(ByteBufCodecs.STRING_UTF8)
-                            .cacheEncoding()
-            );
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> YEAR =
-            register("year",
-                    b -> b.persistent(Codec.INT)
-                            .networkSynchronized(ByteBufCodecs.VAR_INT)
-                            .cacheEncoding()
-            );
 }

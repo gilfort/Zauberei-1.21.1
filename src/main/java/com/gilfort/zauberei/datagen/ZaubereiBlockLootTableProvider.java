@@ -1,6 +1,5 @@
 package com.gilfort.zauberei.datagen;
 
-import com.gilfort.zauberei.block.ZaubereiBlocks;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -27,15 +26,7 @@ public class ZaubereiBlockLootTableProvider extends BlockLootSubProvider
 
     @Override
     protected void generate() {
-        // dropSelf(ZaubereiBlocks.EXAMPLE_BLOCK.get());
-
-        // add(ZaubereiBlocks.EXAMPLE_BLOCK.get(),
-        //      block -> createOreDrop(block, ZaubereiItems.EXAMPLE_ITEM.get()));
-    }
-
-    @Override
-    protected Iterable<Block> getKnownBlocks() {
-        return ZaubereiBlocks.BLOCKS.getEntries().stream().map(Holder::value)::iterator;
+        
     }
 
 

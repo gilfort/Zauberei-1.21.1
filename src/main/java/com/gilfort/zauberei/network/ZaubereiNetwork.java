@@ -6,7 +6,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-@EventBusSubscriber(modid = Zauberei.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Zauberei.MODID)
 public class ZaubereiNetwork {
 
     @SubscribeEvent
@@ -17,12 +17,6 @@ public class ZaubereiNetwork {
                 LetterButtonPayload.TYPE,
                 LetterButtonPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleIntroductionLetter
-        );
-
-        registrar.playToClient(
-                OpenSetsGuiPayload.TYPE,
-                OpenSetsGuiPayload.STREAM_CODEC,
-                ClientPayloadHandler::handleOpenSetsGui
         );
 
         System.out.println("ZaubereiNetwork: Registering payload handler for LetterButtonPayload");

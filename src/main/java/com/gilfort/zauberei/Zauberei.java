@@ -2,14 +2,9 @@ package com.gilfort.zauberei;
 
 import com.gilfort.zauberei.component.ComponentRegistry;
 import com.gilfort.zauberei.creativetab.ZaubereiCreativeModeTabs;
-import com.gilfort.zauberei.item.armor.ArmorEffects;
 import com.gilfort.zauberei.item.ZaubereiItems;
-import com.gilfort.zauberei.item.armor.ArmorSetTooltipHandler;
 import com.gilfort.zauberei.item.armor.ZaubereiArmorMaterials;
-import com.gilfort.zauberei.commands.CommandsService;
-import com.gilfort.zauberei.item.armorbonus.ZaubereiReloadListener;
 import com.gilfort.zauberei.structure.ZaubereiStructures;
-import com.gilfort.zauberei.util.ZaubereiPlayerData;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
@@ -68,11 +63,9 @@ public class Zauberei
 
         ZaubereiItems.register(modEventBus);
         ZaubereiCreativeModeTabs.register(modEventBus);
-        ArmorEffects.register(modEventBus);
         ZaubereiArmorMaterials.register(modEventBus);
         ZaubereiStructures.STRUCTURES.register(modEventBus);
         ComponentRegistry.register(modEventBus);
-        ZaubereiPlayerData.ATTACHMENT_TYPES.register(modEventBus);
 
         if (ModList.get().isLoaded("ars_nouveau")) {
             com.gilfort.zauberei.compat.ArsNouveauCompat.init(modEventBus);
@@ -84,7 +77,6 @@ public class Zauberei
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (ExampleMod) to respond directly to events.
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
-        CommandsService.init();
         NeoForge.EVENT_BUS.register(this);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
@@ -112,9 +104,6 @@ public class Zauberei
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
 
-        //Loads all set_effect files from config/zauberei/set_effects and applies effects
-        ZaubereiReloadListener.loadAllEffects();
-
     }
     public static ResourceLocation id(@NotNull String path) {
         return ResourceLocation.fromNamespaceAndPath(Zauberei.MODID, path);
@@ -139,7 +128,6 @@ public class Zauberei
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
 
-            ArmorSetTooltipHandler.register();
         }
     }
 }

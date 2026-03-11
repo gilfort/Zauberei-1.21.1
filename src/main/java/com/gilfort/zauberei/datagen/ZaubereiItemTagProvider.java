@@ -2,7 +2,6 @@ package com.gilfort.zauberei.datagen;
 
 import com.gilfort.zauberei.Zauberei;
 import com.gilfort.zauberei.item.ZaubereiItems;
-import com.gilfort.zauberei.util.ZaubereiTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
@@ -62,8 +61,5 @@ public class ZaubereiItemTagProvider extends ItemTagsProvider {
                         ZaubereiItems.MAGICCLOTH_BOOTS_ALT.get()
 
                 );
-
-        tag(ZaubereiTags.Items.TRANSFORMABLE_ITEMS);
-
     }
 }

@@ -16,9 +16,11 @@ Zauberei is a NeoForge mod for Minecraft 1.21.1 about a school of magic: the **W
 - GeckoLib
 - Ars Nouveau (optional)
 
-## Upgrading from 0.3.x to 1.0.0
+## Versions
 
-The data-driven armor set effect system, the major/year commands and the timed command system were removed.
-Existing worlds keep working: armor that still carries the old `zauberei:major` / `zauberei:year` data loads
-normally. The old config folder `config/zauberei/set_armor/` and the file `config/zauberei/commands.json5` are no
-longer read and can be deleted.
+| Mod version | Minecraft | Branch |
+|---|---|---|
+| 2.x | 26.3 | `main` |
+| 1.x | 1.21.1 | `1.21.1` (bug fixes only) |
+
+What changed between versions — including upgrade notes — is listed in the [Changelog](Changelog).

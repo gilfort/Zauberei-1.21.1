@@ -7,3 +7,6 @@
 
 **Reference**
 - [Configuration](Configuration)
+
+**Versions**
+- [Changelog](Changelog)

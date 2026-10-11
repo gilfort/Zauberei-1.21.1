@@ -34,6 +34,24 @@ binding reference for them.
 8. Client-only classes (renderers, screens) are reached from common code only through `client/ClientHooks`, so
    a dedicated server never resolves them.
 
+## Branches and versions
+
+- `main` always targets the **newest supported Minecraft version** (currently 26.3, mod versions `2.x`).
+- Every older Minecraft version keeps a long-lived branch named after it (`1.21.1` → mod versions `1.x`). It only
+  receives bug fixes: branch `fix/<mc-version>-<short-name>` from that branch, PR back into it. A fix that applies
+  to several versions is ported with `git cherry-pick` in its own PR per branch.
+- Version branches are never deleted or force-pushed.
+
+## Changelog
+
+- `docs/wiki/Changelog.md` is mandatory. **Every change of `mod_version` adds a section for the new version**
+  (`## <version> — Minecraft <mc version>`, newest first) listing everything that changed since the previous
+  version, grouped into `Added` / `Changed` / `Fixed` / `Removed`.
+- Write it for players and modpack makers (what changed, what they must do — e.g. renamed config files), not as a
+  commit list.
+- On a version branch, the changelog entry goes into that branch's copy; mirror it to `main` so the wiki shows all
+  versions.
+
 ## Workflow
 
 - Work is sliced into GitHub issues labeled `user story` (`US-XX`). **One story at a time.**

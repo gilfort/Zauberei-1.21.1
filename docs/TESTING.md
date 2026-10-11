@@ -9,12 +9,12 @@ There are no GameTests yet. Manual tests cover each change: run `./gradlew runCl
 
 GameTests: none. Automated so far: `runData` and a dedicated GameTest server start without errors.
 
-- [ ] `runClient` starts; Zauberei tab shows all items with correct icons (no missing textures).
-- [ ] Wear each Magiccloth piece (normal and `_alt`): GeckoLib model renders, follows arms / legs / head
+- [x] `runClient` starts; Zauberei tab shows all items with correct icons (no missing textures).
+- [x] Wear each Magiccloth piece (normal and `_alt`): GeckoLib model renders, follows arms / legs / head
       while walking, sneaking and swimming.
-- [ ] Robe: hood layer follows the head; pants: waistband layer follows the body.
+- [x] Robe: hood layer follows the head; pants: waistband layer follows the body.
 - [ ] Armor values (helmet 1, chest 3, legs 2, boots 1), durability, repairing with leather, enchanting.
-- [ ] Introduction Letter: screen shows background, text (with player name) and button; tearing gives the items.
+- [x] Introduction Letter: screen shows background, text (with player name) and button; tearing gives the items.
 - [ ] `letter_text` / `letter_items` in `config/zauberei-local.toml` work.
 - [ ] Dedicated server (`runServer` + client): letter and armor work; no client class errors in the server log.
 - [ ] `spawn_witchwood_school = true`, new world: school appears above spawn; advancement fires only there.

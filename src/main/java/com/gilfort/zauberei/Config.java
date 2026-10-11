@@ -1,35 +1,44 @@
 package com.gilfort.zauberei;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-// An example config class. This is not required, but it's a good idea to have one to keep your config organized.
-
-// Demonstrates how to use Neo's config APIs
+/**
+ * Common (global) configuration of the mod, stored in {@code config/zauberei-common.toml}.
+ * Display names of the options live in the lang file under {@code zauberei.configuration.<key>}.
+ */
 public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
+    /** Item ids handed out when a player tears the Introduction Letter. */
     public static final ModConfigSpec.ConfigValue<List<? extends String>> LETTER_ITEMS;
+
+    /**
+     * Optional override of the Introduction Letter text. When empty, the translated text from the
+     * lang file ({@code message.zauberei.introduction_letter.text}) is shown.
+     */
     public static final ModConfigSpec.ConfigValue<String> LETTER_TEXT;
+
+    /** Whether the Witchwood School is placed above the world spawn when a new world is created. */
     public static final ModConfigSpec.ConfigValue<Boolean> SPAWN_WITCHWOOD_SCHOOL;
 
     /**
-     * When set to false, all Magiccloth Armor items and the Introduction Letter
-     * are hidden from the Creative Tab and from item viewers like JEI/EMI.
-     * Items remain registered to prevent crashes in existing worlds.
-     * The set effect system (ArmorEffects, ArmorSetData, etc.) is always active.
+     * When false, all Magiccloth Armor items and the Introduction Letter are hidden from the creative tab
+     * and from item viewers like JEI/EMI. Items stay registered so existing worlds keep working.
      * Requires a game restart to take effect.
      */
     public static final ModConfigSpec.ConfigValue<Boolean> ENABLE_MAGICAL_ARMOR;
 
     static {
         LETTER_ITEMS = BUILDER
-                .comment("\nItems, the player can get when using the Introduction Letter\n")
+                .comment("Items the player receives when tearing the Introduction Letter.")
+                .translation("zauberei.configuration.letter_items")
                 .defineListAllowEmpty(
                         List.of("letter_items"),
                         List.of(
@@ -38,58 +47,50 @@ public class Config {
                                 "zauberei:magiccloth_leggings",
                                 "zauberei:magiccloth_boots"
                         ),
-                        o -> o instanceof String
+                        () -> "zauberei:magiccloth",
+                        o -> o instanceof String s && ResourceLocation.tryParse(s) != null
                 );
 
         LETTER_TEXT = BUILDER
-                .comment("\nText shown in the introduction letter item. Use %player% as a placeholder for the player name.\n")
-                .define("letter_text",
-                        """
-                        Dear %player%,
-                        
-                        Congratulations!
-                        Our detection system - "Oculus" - has recognized your magical talent.
-                        We are pleased to inform you that you have been accepted into our school as a scholarship student.
-                        From today on you are part of the Witchwood Academy.
-                        
-                        To receive your first-year supplies, please tear this letter apart.
-                        Welcome to a world where magic comes to life.
-                        We look forward to guiding you on your journey and helping you master your new skills.
-                        
-                        Yours sincerely,
-                        Professor McDumblesnape
-                        Headmaster of Witchwood Academy
-                        """);
+                .comment("Optional override of the text shown in the Introduction Letter.",
+                        "Leave empty to use the translated default text.",
+                        "Use %player% as a placeholder for the player name.")
+                .translation("zauberei.configuration.letter_text")
+                .define("letter_text", "");
 
         SPAWN_WITCHWOOD_SCHOOL = BUILDER
-                .comment("\nWhether the Witchwood School should be spawned in the world. (at 0 250 0)\n")
+                .comment("Whether the Witchwood School is placed above the world spawn (around 0 244 0)",
+                        "when a new world is created.")
+                .translation("zauberei.configuration.spawn_witchwood_school")
                 .define("spawn_witchwood_school", false);
 
         ENABLE_MAGICAL_ARMOR = BUILDER
-                .comment("\nWhether the Magiccloth Armor items and the Introduction Letter are enabled.\n"
-                        + "When set to false, these items are hidden from the Creative Tab and item viewers (JEI/EMI).\n"
-                        + "Items remain registered to prevent crashes in existing worlds.\n"
-                        + "The set effect system remains active regardless of this setting.\n"
-                        + "Requires a game restart to take effect.\n")
+                .comment("Whether the Magiccloth Armor items and the Introduction Letter are enabled.",
+                        "When false, these items are hidden from the creative tab and item viewers (JEI/EMI).",
+                        "Items remain registered to prevent crashes in existing worlds.",
+                        "Requires a game restart to take effect.")
+                .translation("zauberei.configuration.enable_magical_armor")
                 .define("enable_magical_armor", true);
-
     }
 
     static final ModConfigSpec SPEC = BUILDER.build();
 
-
+    /**
+     * Resolves {@link #LETTER_ITEMS} into item stacks. Unknown ids are skipped with a warning.
+     *
+     * @return one stack per configured, existing item
+     */
     public static List<ItemStack> getLetterItems() {
-
-        return LETTER_ITEMS.get().stream()
-                .map(itemName -> BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemName)))
-                .filter(item -> item != Items.AIR)
-                .map(ItemStack::new)
-                .toList();
+        List<ItemStack> stacks = new ArrayList<>();
+        for (String itemName : LETTER_ITEMS.get()) {
+            ResourceLocation id = ResourceLocation.tryParse(itemName);
+            if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
+                Zauberei.LOGGER.warn("[Zauberei] Unknown item '{}' in letter_items, skipped.", itemName);
+                continue;
+            }
+            Item item = BuiltInRegistries.ITEM.get(id);
+            stacks.add(new ItemStack(item));
+        }
+        return stacks;
     }
-
-    public static String getLetterText(String playerName) {
-        return LETTER_TEXT.get().replace("%player%", playerName).replace("\r", "");
-    }
-
-
 }

@@ -6,11 +6,20 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-@EventBusSubscriber(modid = Zauberei.MODID, bus = EventBusSubscriber.Bus.MOD)
+/**
+ * Registers the custom network payloads of the mod.
+ * FML routes {@link RegisterPayloadHandlersEvent} (a mod bus event) to the mod bus automatically.
+ */
+@EventBusSubscriber(modid = Zauberei.MODID)
 public class ZaubereiNetwork {
 
+    /**
+     * Registers all payload types and their handlers.
+     *
+     * @param event the payload registration event
+     */
     @SubscribeEvent
-    public static void registerPayload(final RegisterPayloadHandlersEvent event) {
+    public static void registerPayloads(final RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
 
         registrar.playToServer(
@@ -18,14 +27,5 @@ public class ZaubereiNetwork {
                 LetterButtonPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleIntroductionLetter
         );
-
-        registrar.playToClient(
-                OpenSetsGuiPayload.TYPE,
-                OpenSetsGuiPayload.STREAM_CODEC,
-                ClientPayloadHandler::handleOpenSetsGui
-        );
-
-        System.out.println("ZaubereiNetwork: Registering payload handler for LetterButtonPayload");
-
     }
 }

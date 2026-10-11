@@ -3,6 +3,6 @@
   "values": [
     "zauberei:magiccloth_chestplate",
     "zauberei:magiccloth_chestplate_alt",
-    "zauberei:magiccloth_chestplate_perks"
+    { "id": "zauberei:magiccloth_chestplate_perks", "required": false }
   ]
 }

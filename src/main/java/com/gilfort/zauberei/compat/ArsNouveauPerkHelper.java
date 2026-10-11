@@ -16,10 +16,22 @@ import net.minecraft.world.level.Level;
 
 import java.util.List;
 
+/**
+ * Ars Nouveau perk logic for {@link com.gilfort.zauberei.item.armor.MagicclothArmorItemArs}.
+ * Kept in its own class so Ars Nouveau classes are only loaded when the mod is present.
+ */
 public class ArsNouveauPerkHelper {
 
+    /**
+     * Ticks repairing and all tickable perks of an armor stack while it is worn.
+     *
+     * @param stack  the armor stack
+     * @param level  the level of the wearer
+     * @param entity the wearer
+     * @param slotId the inventory slot index of the stack
+     */
     public static void tickPerks(ItemStack stack, Level level, LivingEntity entity, int slotId) {
-        // Nur ticken wenn das Item in einem Armor-Slot liegt
+        // Only tick while the item sits in one of the four armor slots.
         if (slotId < Inventory.INVENTORY_SIZE || slotId >= Inventory.INVENTORY_SIZE + 4) return;
 
         RepairingPerk.attemptRepair(stack, entity);
@@ -33,6 +45,12 @@ public class ArsNouveauPerkHelper {
         }
     }
 
+    /**
+     * Appends the Ars Nouveau perk tooltip of the stack.
+     *
+     * @param stack   the armor stack
+     * @param tooltip the tooltip lines to extend
+     */
     public static void appendPerkTooltip(ItemStack stack, List<Component> tooltip) {
         var data = stack.get(DataComponentRegistry.ARMOR_PERKS);
         if (data != null) {
@@ -40,6 +58,14 @@ public class ArsNouveauPerkHelper {
         }
     }
 
+    /**
+     * Applies the attribute modifiers of all perks on the stack.
+     *
+     * @param modifiers the default modifiers of the item
+     * @param stack     the armor stack
+     * @param type      the armor type of the item
+     * @return the modifiers including all perk modifiers
+     */
     public static ItemAttributeModifiers applyPerkModifiers(
             ItemAttributeModifiers modifiers, ItemStack stack, ArmorItem.Type type) {
         var perkHolder = PerkUtil.getPerkHolder(stack);
@@ -51,9 +77,6 @@ public class ArsNouveauPerkHelper {
                     EquipmentSlotGroup.bySlot(type.getSlot())
             );
         }
-        // Optional: Hier könntest du auch eigene Zauberei-spezifische
-        // Attribute hinzufügen, analog zu AN's Mana-Bonus
         return modifiers;
     }
 }
-

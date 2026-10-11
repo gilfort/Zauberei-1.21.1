@@ -7,17 +7,31 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import software.bernie.geckolib.renderer.GeoArmorRenderer;
 
+/**
+ * Magiccloth armor piece (school uniform), rendered with GeckoLib.
+ */
 public class MagicclothArmorItem extends ExtendedArmorItem {
 
+    /**
+     * Creates a Magiccloth armor piece.
+     *
+     * @param slot     the armor type
+     * @param settings the item properties
+     */
     public MagicclothArmorItem(Type slot, Properties settings) {
         super(ZaubereiArmorMaterials.MAGICCLOTH, slot, settings);
     }
 
+    /**
+     * Whether this is one of the alternative ({@code _alt}) pieces with their own model and texture.
+     *
+     * @return true for the alternative pieces
+     */
     public boolean isAlt() {
-        return this.equals(ZaubereiItems.MAGICCLOTH_HELMET_ALT.get())
-                || this.equals(ZaubereiItems.MAGICCLOTH_CHESTPLATE_ALT.get())
-                || this.equals(ZaubereiItems.MAGICCLOTH_LEGGINGS_ALT.get())
-                || this.equals(ZaubereiItems.MAGICCLOTH_BOOTS_ALT.get());
+        return this == ZaubereiItems.MAGICCLOTH_HELMET_ALT.get()
+                || this == ZaubereiItems.MAGICCLOTH_CHESTPLATE_ALT.get()
+                || this == ZaubereiItems.MAGICCLOTH_LEGGINGS_ALT.get()
+                || this == ZaubereiItems.MAGICCLOTH_BOOTS_ALT.get();
     }
 
     @Override

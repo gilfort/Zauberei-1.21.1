@@ -13,35 +13,60 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.UnaryOperator;
 
+/**
+ * Registers the data component types of the mod.
+ */
 public class ComponentRegistry {
-    private static final DeferredRegister<DataComponentType<?>> COMPONENTS = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, Zauberei.MODID);
+    private static final DeferredRegister<DataComponentType<?>> COMPONENTS =
+            DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, Zauberei.MODID);
 
-
+    /**
+     * Wires the component register to the mod event bus.
+     *
+     * @param eventBus the mod event bus
+     */
     public static void register(IEventBus eventBus) {
         COMPONENTS.register(eventBus);
     }
 
-    private static <T> DeferredHolder<DataComponentType<?>, DataComponentType<T>> register(String pName, UnaryOperator<DataComponentType.Builder<T>> pBuilder) {
-        return COMPONENTS.register(pName, () -> pBuilder.apply(DataComponentType.builder()).build());
+    private static <T> DeferredHolder<DataComponentType<?>, DataComponentType<T>> register(
+            String name, UnaryOperator<DataComponentType.Builder<T>> builder) {
+        return COMPONENTS.register(name, () -> builder.apply(DataComponentType.builder()).build());
     }
 
+    /** Marks a Magiccloth armor piece that renders its alternative ("alt") bones. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> CLOTHING_ALT =
             register("transmog",
-                    (builder) -> builder
+                    builder -> builder
                             .persistent(Unit.CODEC)
-                            .networkSynchronized(StreamCodec.unit(Unit.INSTANCE)).cacheEncoding());
+                            .networkSynchronized(StreamCodec.unit(Unit.INSTANCE))
+                            .cacheEncoding());
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> MAJOR =
+    /**
+     * Legacy component {@code zauberei:major}, written onto worn armor by the removed set effect system.
+     * Never written anymore; it stays registered only so that item stacks saved by older versions still
+     * load — without it, every armor piece carrying it would be dropped when a world is loaded.
+     *
+     * @deprecated legacy data only, do not use
+     */
+    @Deprecated
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> LEGACY_MAJOR =
             register("major",
-                    b -> b.persistent(Codec.STRING)
+                    builder -> builder
+                            .persistent(Codec.STRING)
                             .networkSynchronized(ByteBufCodecs.STRING_UTF8)
-                            .cacheEncoding()
-            );
+                            .cacheEncoding());
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> YEAR =
+    /**
+     * Legacy component {@code zauberei:year}, see {@link #LEGACY_MAJOR}.
+     *
+     * @deprecated legacy data only, do not use
+     */
+    @Deprecated
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> LEGACY_YEAR =
             register("year",
-                    b -> b.persistent(Codec.INT)
+                    builder -> builder
+                            .persistent(Codec.INT)
                             .networkSynchronized(ByteBufCodecs.VAR_INT)
-                            .cacheEncoding()
-            );
+                            .cacheEncoding());
 }

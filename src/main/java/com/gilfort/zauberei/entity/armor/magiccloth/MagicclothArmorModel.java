@@ -1,56 +1,34 @@
 package com.gilfort.zauberei.entity.armor.magiccloth;
 
 import com.gilfort.zauberei.Zauberei;
-import com.gilfort.zauberei.item.ZaubereiItems;
 import com.gilfort.zauberei.item.armor.MagicclothArmorItem;
-import software.bernie.geckolib.model.GeoModel;
 import net.minecraft.resources.ResourceLocation;
+import software.bernie.geckolib.model.GeoModel;
 
-import java.lang.reflect.Constructor;
-
-
+/**
+ * GeckoLib model of the Magiccloth armor; the alternative pieces use their own geometry, texture and animation.
+ */
 public class MagicclothArmorModel extends GeoModel<MagicclothArmorItem> {
 
-    public MagicclothArmorModel(){
-        super();
+    private static final ResourceLocation MODEL = Zauberei.id("geo/magiccloth_armor.geo.json");
+    private static final ResourceLocation MODEL_ALT = Zauberei.id("geo/magiccloth_armor_alt.geo.json");
+    private static final ResourceLocation TEXTURE = Zauberei.id("textures/models/armor/magiccloth.png");
+    private static final ResourceLocation TEXTURE_ALT = Zauberei.id("textures/models/armor/magiccloth_alt.png");
+    private static final ResourceLocation ANIMATION = Zauberei.id("animations/magiccloth_armor_animation.json");
+    private static final ResourceLocation ANIMATION_ALT = Zauberei.id("animations/magiccloth_armor_animation_alt.json");
 
+    @Override
+    public ResourceLocation getModelResource(MagicclothArmorItem item) {
+        return item.isAlt() ? MODEL_ALT : MODEL;
     }
 
     @Override
-    public ResourceLocation getModelResource(MagicclothArmorItem object){
-        if(object.isAlt()) {
-            return createResourceLocation(Zauberei.MODID, "geo/magiccloth_armor_alt.geo.json");
-        }else {
-            return createResourceLocation(Zauberei.MODID, "geo/magiccloth_armor.geo.json");
-        }
+    public ResourceLocation getTextureResource(MagicclothArmorItem item) {
+        return item.isAlt() ? TEXTURE_ALT : TEXTURE;
     }
 
     @Override
-    public ResourceLocation getTextureResource(MagicclothArmorItem object){
-        if(object.isAlt()) {
-            return createResourceLocation(Zauberei.MODID, "textures/models/armor/magiccloth_alt.png");
-        }else {
-            return createResourceLocation(Zauberei.MODID, "textures/models/armor/magiccloth.png");
-        }
+    public ResourceLocation getAnimationResource(MagicclothArmorItem item) {
+        return item.isAlt() ? ANIMATION_ALT : ANIMATION;
     }
-
-    @Override
-    public ResourceLocation getAnimationResource(MagicclothArmorItem object){
-        if(object.isAlt()) {
-            return createResourceLocation(Zauberei.MODID, "animations/magiccloth_armor_animation_alt.json");
-        }else {
-            return createResourceLocation(Zauberei.MODID, "animations/magiccloth_armor_animation.json");
-        }
-    }
-
-    private ResourceLocation createResourceLocation(String namespace, String path) {
-        try {
-            Constructor<ResourceLocation> constructor = ResourceLocation.class.getDeclaredConstructor(String.class, String.class);
-            constructor.setAccessible(true);
-            return constructor.newInstance(namespace, path);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create ResourceLocation", e);
-        }
-    }
-
 }

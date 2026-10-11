@@ -3,6 +3,6 @@
   "values": [
     "zauberei:magiccloth_helmet",
     "zauberei:magiccloth_helmet_alt",
-    "zauberei:magiccloth_helmet_perks"
+    { "id": "zauberei:magiccloth_helmet_perks", "required": false }
   ]
 }

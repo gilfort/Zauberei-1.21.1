@@ -1,19 +1,11 @@
 {
-  //creative tab
-  "creativetab.zauberei.zauberei_tab": "Zauberei",
-
-
-  //tags
+  "itemGroup.zauberei.zauberei_tab": "Zauberei",
 
   "tag.item.zauberei.magiccloth_armor": "Magiccloth Armor",
 
-
-  //items
   "item.zauberei.magiccloth": "Magiccloth",
   "item.zauberei.introductionletter": "Introduction Letter",
 
-
-  //armor
   "item.zauberei.magiccloth_helmet": "Magiccloth Hood",
   "item.zauberei.magiccloth_chestplate": "Magiccloth Robe",
   "item.zauberei.magiccloth_leggings": "Magiccloth Pants",
@@ -27,11 +19,15 @@
   "item.zauberei.magiccloth_leggings_perks": "Magiccloth Pants",
   "item.zauberei.magiccloth_boots_perks": "Magiccloth Boots",
 
-  /*
-  * Thoughts and agsnoce comments
-  */
+  "gui.zauberei.introduction_letter.tear": "Tear Letter",
+  "message.zauberei.introduction_letter.text": "Dear %1$s,\n\nCongratulations!\nOur detection system - \"Oculus\" - has recognized your magical talent.\nWe are pleased to inform you that you have been accepted into our school as a scholarship student.\nFrom today on you are part of the Witchwood Academy.\n\nTo receive your first-year supplies, please tear this letter apart.\nWelcome to a world where magic comes to life.\nWe look forward to guiding you on your journey and helping you master your new skills.\n\nYours sincerely,\nProfessor McDumblesnape\nHeadmaster of Witchwood Academy",
 
   "zauberei.agnosce_intro.0": "🔷 AGNOSCE System initiated",
-  "zauberei.agnosce_intro.1": "🔷 Transfer is being secured"
+  "zauberei.agnosce_intro.1": "🔷 Transfer is being secured",
 
+  "zauberei.configuration.title": "Zauberei Configuration",
+  "zauberei.configuration.letter_items": "Introduction Letter Items",
+  "zauberei.configuration.letter_text": "Introduction Letter Text Override",
+  "zauberei.configuration.spawn_witchwood_school": "Spawn Witchwood School",
+  "zauberei.configuration.enable_magical_armor": "Enable Magiccloth Armor"
 }

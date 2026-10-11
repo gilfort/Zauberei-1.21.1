@@ -2,21 +2,26 @@ package com.gilfort.zauberei.network;
 
 import com.gilfort.zauberei.Zauberei;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.stream.Stream;
-
+/**
+ * Empty client → server payload sent when the player tears the Introduction Letter.
+ * The server validates that the player actually holds a letter.
+ */
 public record LetterButtonPayload() implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<LetterButtonPayload> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Zauberei.MODID, "letterbuttonpayload"));
+    /** Payload type id. */
+    public static final CustomPacketPayload.Type<LetterButtonPayload> TYPE =
+            new CustomPacketPayload.Type<>(Zauberei.id("letterbuttonpayload"));
 
-    public static final StreamCodec<ByteBuf, LetterButtonPayload> STREAM_CODEC = StreamCodec.unit(new LetterButtonPayload());
+    /** Codec of the payload; it carries no data. */
+    public static final StreamCodec<ByteBuf, LetterButtonPayload> STREAM_CODEC =
+            StreamCodec.unit(new LetterButtonPayload());
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public @NotNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

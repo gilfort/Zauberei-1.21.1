@@ -24,3 +24,5 @@ runs
 run-data
 
 repo
+# local Claude Code instructions (committed rules live in CONTRIBUTING.md)
+CLAUDE.md

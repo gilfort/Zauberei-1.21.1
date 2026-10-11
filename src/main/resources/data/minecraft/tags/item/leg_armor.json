@@ -3,6 +3,6 @@
   "values": [
     "zauberei:magiccloth_leggings",
     "zauberei:magiccloth_leggings_alt",
-    "zauberei:magiccloth_leggings_perks"
+    { "id": "zauberei:magiccloth_leggings_perks", "required": false }
   ]
 }

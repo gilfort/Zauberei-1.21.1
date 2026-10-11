@@ -9,9 +9,9 @@
     "zauberei:magiccloth_chestplate_alt",
     "zauberei:magiccloth_leggings_alt",
     "zauberei:magiccloth_boots_alt",
-    "zauberei:magiccloth_helmet_perks",
-    "zauberei:magiccloth_chestplate_perks",
-    "zauberei:magiccloth_leggings_perks",
-    "zauberei:magiccloth_boots_perks"
+    { "id": "zauberei:magiccloth_helmet_perks", "required": false },
+    { "id": "zauberei:magiccloth_chestplate_perks", "required": false },
+    { "id": "zauberei:magiccloth_leggings_perks", "required": false },
+    { "id": "zauberei:magiccloth_boots_perks", "required": false }
   ]
 }

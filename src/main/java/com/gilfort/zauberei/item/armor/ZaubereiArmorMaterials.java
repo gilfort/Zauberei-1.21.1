@@ -1,61 +1,38 @@
 package com.gilfort.zauberei.item.armor;
 
 import com.gilfort.zauberei.Zauberei;
-import net.minecraft.Util;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.sounds.SoundEvent;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.item.equipment.EquipmentAsset;
+import net.minecraft.world.item.equipment.EquipmentAssets;
 
 import java.util.EnumMap;
-import java.util.List;
-import java.util.function.Supplier;
+import java.util.Map;
 
 /**
- * Registers the armor materials of the mod.
+ * Armor materials of the mod. Since 1.21.2 armor materials are plain records applied through
+ * {@link net.minecraft.world.item.Item.Properties#humanoidArmor}, not registry entries.
  */
-public class ZaubereiArmorMaterials {
+public final class ZaubereiArmorMaterials {
 
-    private static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS =
-            DeferredRegister.create(Registries.ARMOR_MATERIAL, Zauberei.MODID);
+    /** Equipment asset id of the Magiccloth armor. Rendering is done by GeckoLib, not by an equipment asset file. */
+    public static final ResourceKey<EquipmentAsset> MAGICCLOTH_ASSET = ResourceKey.create(EquipmentAssets.ROOT_ID, Zauberei.id("magiccloth"));
 
-    /** Magiccloth: leather-like defense, repairable with leather. */
-    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> MAGICCLOTH = register("magiccloth",
-            makeArmorMap(1, 3, 2, 1),
+    /** Magiccloth: leather-like defense, enchantability 15, repairable with leather. */
+    public static final ArmorMaterial MAGICCLOTH = new ArmorMaterial(
+            26,
+            defense(1, 3, 2, 1),
             15,
             SoundEvents.ARMOR_EQUIP_LEATHER,
-            () -> Ingredient.of(Tags.Items.LEATHERS),
-            0,
-            0);
+            0.0F,
+            0.0F,
+            ItemTags.REPAIRS_LEATHER_ARMOR,
+            MAGICCLOTH_ASSET);
 
-    /**
-     * Wires the material register to the mod event bus.
-     *
-     * @param eventBus the mod event bus
-     */
-    public static void register(IEventBus eventBus) {
-        ARMOR_MATERIALS.register(eventBus);
-    }
-
-    private static DeferredHolder<ArmorMaterial, ArmorMaterial> register(
-            String name,
-            EnumMap<ArmorItem.Type, Integer> defense,
-            int enchantmentValue,
-            Holder<SoundEvent> equipSound,
-            Supplier<Ingredient> repairIngredient,
-            float toughness,
-            float knockbackResistance
-    ) {
-        List<ArmorMaterial.Layer> layers = List.of(new ArmorMaterial.Layer(Zauberei.id(name)));
-        return ARMOR_MATERIALS.register(name, () -> new ArmorMaterial(defense, enchantmentValue, equipSound,
-                repairIngredient, layers, toughness, knockbackResistance));
+    private ZaubereiArmorMaterials() {
     }
 
     /**
@@ -67,12 +44,13 @@ public class ZaubereiArmorMaterials {
      * @param boots      defense of the boots
      * @return the defense map
      */
-    public static EnumMap<ArmorItem.Type, Integer> makeArmorMap(int helmet, int chestplate, int leggings, int boots) {
-        return Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
-            map.put(ArmorItem.Type.BOOTS, boots);
-            map.put(ArmorItem.Type.LEGGINGS, leggings);
-            map.put(ArmorItem.Type.CHESTPLATE, chestplate);
-            map.put(ArmorItem.Type.HELMET, helmet);
-        });
+    public static Map<ArmorType, Integer> defense(int helmet, int chestplate, int leggings, int boots) {
+        EnumMap<ArmorType, Integer> map = new EnumMap<>(ArmorType.class);
+        map.put(ArmorType.HELMET, helmet);
+        map.put(ArmorType.CHESTPLATE, chestplate);
+        map.put(ArmorType.LEGGINGS, leggings);
+        map.put(ArmorType.BOOTS, boots);
+        map.put(ArmorType.BODY, 0);
+        return map;
     }
 }

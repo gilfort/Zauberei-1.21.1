@@ -1,5 +1,7 @@
 package com.gilfort.zauberei.client;
 
+import com.geckolib.renderer.GeoArmorRenderer;
+import com.gilfort.zauberei.entity.armor.magiccloth.MagicclothArmorRenderer;
 import net.minecraft.client.Minecraft;
 
 /**
@@ -13,6 +15,15 @@ public final class ClientHooks {
 
     /** Opens the Introduction Letter screen. */
     public static void openLetterScreen() {
-        Minecraft.getInstance().setScreen(new LetterScreen());
+        Minecraft.getInstance().gui.setScreen(new LetterScreen());
+    }
+
+    /**
+     * Creates the GeckoLib renderer of the Magiccloth armor.
+     *
+     * @return a new renderer instance
+     */
+    public static GeoArmorRenderer<?, ?> createMagicclothArmorRenderer() {
+        return new MagicclothArmorRenderer();
     }
 }

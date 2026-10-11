@@ -5,6 +5,21 @@ There are no GameTests yet. Manual tests cover each change: run `./gradlew runCl
 
 ---
 
+## Upgrade to Minecraft 26.3 (branch `feature/upgrade-mc-26.3`)
+
+GameTests: none. Automated so far: `runData` and a dedicated GameTest server start without errors.
+
+- [x] `runClient` starts; Zauberei tab shows all items with correct icons (no missing textures).
+- [x] Wear each Magiccloth piece (normal and `_alt`): GeckoLib model renders, follows arms / legs / head
+      while walking, sneaking and swimming.
+- [x] Robe: hood layer follows the head; pants: waistband layer follows the body.
+- [ ] Armor values (helmet 1, chest 3, legs 2, boots 1), durability, repairing with leather, enchanting.
+- [x] Introduction Letter: screen shows background, text (with player name) and button; tearing gives the items.
+- [ ] `letter_text` / `letter_items` in `config/zauberei-local.toml` work.
+- [ ] Dedicated server (`runServer` + client): letter and armor work; no client class errors in the server log.
+- [ ] `spawn_witchwood_school = true`, new world: school appears above spawn; advancement fires only there.
+- [ ] Old 1.21.1 world (1.0.0) upgraded to 26.3: Magiccloth and other armor still in the inventory.
+
 ## Remove set effects and command system (branch `remove-set_effects`)
 
 GameTests: none.

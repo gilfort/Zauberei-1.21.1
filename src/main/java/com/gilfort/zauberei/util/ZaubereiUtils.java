@@ -1,6 +1,7 @@
 package com.gilfort.zauberei.util;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -16,7 +17,7 @@ public class ZaubereiUtils {
      */
     public static void giveOrDrop(ServerPlayer player, ItemStack stack) {
         if (!player.getInventory().add(stack)) {
-            player.drop(stack, false);
+            player.drop(stack, false, Prediction.SERVER_ONLY);
         }
     }
 }

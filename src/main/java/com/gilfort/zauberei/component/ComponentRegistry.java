@@ -34,7 +34,11 @@ public class ComponentRegistry {
         return COMPONENTS.register(name, () -> builder.apply(DataComponentType.builder()).build());
     }
 
-    /** Marks a Magiccloth armor piece that renders its alternative ("alt") bones. */
+    /**
+     * Transmog marker ({@code zauberei:transmog}). Meant to show bones named {@code alt*}; the current
+     * Magiccloth models have no such bones, so it has no visible effect. Kept registered because stacks in
+     * existing worlds may carry it.
+     */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> CLOTHING_ALT =
             register("transmog",
                     builder -> builder

@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/gilfort/Zauberei-1.21.1/actions/workflows/build.yml/badge.svg)](https://github.com/gilfort/Zauberei-1.21.1/actions/workflows/build.yml)
 
-A NeoForge mod for Minecraft 1.21.1 about a school of magic: the Witchwood School and its Magiccloth school
+A NeoForge mod for Minecraft 26.3 about a school of magic: the Witchwood School and its Magiccloth school
 uniform.
 
 **📖 Documentation: [Wiki](https://github.com/gilfort/Zauberei-1.21.1/wiki)**
@@ -12,12 +12,12 @@ uniform.
 - **Magiccloth Armor** — animated school uniform (GeckoLib) in two styles.
 - **Introduction Letter** — tear it to receive configurable starting items.
 - **Witchwood School** — optional school structure placed above the world spawn.
-- **Ars Nouveau support** — optional Magiccloth variants with perk slots.
+- **Ars Nouveau support** — optional Magiccloth variants with perk slots (disabled until Ars Nouveau supports 26.x).
 
 ## Installation
 
-Requires NeoForge for Minecraft 1.21.1 and GeckoLib. Ars Nouveau is optional. Put the mod jar into the `mods`
-folder of client and server.
+Requires NeoForge for Minecraft 26.3 and GeckoLib 5.5.7 or newer. Put the mod jar into the `mods` folder of client
+and server.
 
 ## For developers
 

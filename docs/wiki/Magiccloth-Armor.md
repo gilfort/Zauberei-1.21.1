@@ -11,7 +11,7 @@ The Witchwood school uniform. All pieces are animated with GeckoLib and repaired
 
 - **Defense** (helmet / chestplate / leggings / boots): 1 / 3 / 2 / 1, enchantability 15.
 - **Alternative style:** the `_alt` pieces use their own model and texture.
-- **Ars Nouveau:** the `_perks` pieces only exist when Ars Nouveau is installed. Perk slots: hood and boots
+- **Ars Nouveau:** the `_perks` pieces only exist when Ars Nouveau is installed — currently disabled, because Ars Nouveau has no Minecraft 26.x release yet. Perk slots: hood and boots
   2 (tier one, two), robe 3 (one, one, three), pants 3 (one, two, two).
 - **Tags:** all pieces are in `#zauberei:magiccloth_armor` and the vanilla `#minecraft:head_armor` /
   `chest_armor` / `leg_armor` / `foot_armor` tags, which makes them enchantable like vanilla armor.

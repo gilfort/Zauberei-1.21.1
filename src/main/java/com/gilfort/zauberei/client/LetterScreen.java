@@ -4,14 +4,14 @@ import com.gilfort.zauberei.Config;
 import com.gilfort.zauberei.Zauberei;
 import com.gilfort.zauberei.item.ZaubereiItems;
 import com.gilfort.zauberei.network.LetterButtonPayload;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
-import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class LetterScreen extends Screen {
 
-    private static final ResourceLocation BACKGROUND = Zauberei.id("textures/gui/letter.png");
+    private static final Identifier BACKGROUND = Zauberei.id("textures/gui/letter.png");
     private static final int IMAGE_WIDTH = 256;
     private static final int IMAGE_HEIGHT = 256;
 
@@ -34,6 +34,7 @@ public class LetterScreen extends Screen {
     private static final int TEXT_Y = 40;
     private static final int MAX_TEXT_WIDTH = 230;
     private static final int MAX_TEXT_HEIGHT = 170;
+    private static final int TEXT_COLOR = 0xFF000000;
 
     private Component letterText = Component.empty();
 
@@ -47,17 +48,14 @@ public class LetterScreen extends Screen {
         super.init();
         this.letterText = buildLetterText();
 
-        int guiLeft = (this.width - IMAGE_WIDTH) / 2;
-        int guiTop = (this.height - IMAGE_HEIGHT) / 2;
-
         this.addRenderableWidget(
                 Button.builder(
                                 Component.translatable("gui.zauberei.introduction_letter.tear"),
                                 button -> {
-                                    PacketDistributor.sendToServer(new LetterButtonPayload());
+                                    ClientPacketDistributor.sendToServer(new LetterButtonPayload());
                                     this.onClose();
                                 })
-                        .bounds(guiLeft + BUTTON_X, guiTop + BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT)
+                        .bounds(guiLeft() + BUTTON_X, guiTop() + BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT)
                         .build()
         );
     }
@@ -67,9 +65,7 @@ public class LetterScreen extends Screen {
      * Called from {@link #init()}, where {@code minecraft} is available.
      */
     private Component buildLetterText() {
-        String playerName = this.minecraft != null && this.minecraft.player != null
-                ? this.minecraft.player.getDisplayName().getString()
-                : "";
+        String playerName = this.minecraft.player != null ? this.minecraft.player.getPlainTextName() : "";
         String override = Config.LETTER_TEXT.get();
         if (!override.isBlank()) {
             return Component.literal(override.replace("%player%", playerName).replace("\r", ""));
@@ -77,18 +73,24 @@ public class LetterScreen extends Screen {
         return Component.translatable("message.zauberei.introduction_letter.text", playerName);
     }
 
+    private int guiLeft() {
+        return (this.width - IMAGE_WIDTH) / 2;
+    }
+
+    private int guiTop() {
+        return (this.height - IMAGE_HEIGHT) / 2;
+    }
+
     @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND, guiLeft(), guiTop(), 0, 0,
+                IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_HEIGHT);
+    }
 
-        int guiLeft = (this.width - IMAGE_WIDTH) / 2;
-        int guiTop = (this.height - IMAGE_HEIGHT) / 2;
-
-        // Draw the background slightly behind the widgets.
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(0, 0, -1);
-        guiGraphics.blit(BACKGROUND, guiLeft, guiTop, 0, 0, IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_HEIGHT);
-        guiGraphics.pose().popPose();
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
 
         List<FormattedCharSequence> wrappedText = this.font.split(letterText, MAX_TEXT_WIDTH);
         int lineHeight = this.font.lineHeight;
@@ -97,12 +99,12 @@ public class LetterScreen extends Screen {
         // Shrink long texts so they fit into the letter.
         float scale = textHeight > MAX_TEXT_HEIGHT ? (float) MAX_TEXT_HEIGHT / textHeight : 1.0f;
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().scale(scale, scale, 1.0f);
-        guiGraphics.pose().translate((guiLeft + TEXT_X) / scale, (guiTop + TEXT_Y) / scale, 0);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(guiLeft() + TEXT_X, guiTop() + TEXT_Y);
+        graphics.pose().scale(scale, scale);
         for (int i = 0; i < wrappedText.size(); i++) {
-            guiGraphics.drawString(this.font, wrappedText.get(i), 0, lineHeight * i, 0x000000, false);
+            graphics.text(this.font, wrappedText.get(i), 0, lineHeight * i, TEXT_COLOR, false);
         }
-        guiGraphics.pose().popPose();
+        graphics.pose().popMatrix();
     }
 }

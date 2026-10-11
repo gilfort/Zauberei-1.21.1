@@ -1,23 +1,19 @@
 package com.gilfort.zauberei;
 
 import com.gilfort.zauberei.component.ComponentRegistry;
-import com.gilfort.zauberei.compat.ArsNouveauCompat;
 import com.gilfort.zauberei.creativetab.ZaubereiCreativeModeTabs;
 import com.gilfort.zauberei.item.ZaubereiItems;
-import com.gilfort.zauberei.item.armor.ZaubereiArmorMaterials;
 import com.mojang.logging.LogUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 /**
- * Main entry point of the Zauberei mod. Wires all deferred registers, the optional Ars Nouveau
- * compatibility and the common config.
+ * Main entry point of the Zauberei mod. Wires all deferred registers and the common config.
  */
 @Mod(Zauberei.MODID)
 public class Zauberei {
@@ -37,25 +33,23 @@ public class Zauberei {
     public Zauberei(IEventBus modEventBus, ModContainer modContainer) {
         ZaubereiItems.register(modEventBus);
         ZaubereiCreativeModeTabs.register(modEventBus);
-        ZaubereiArmorMaterials.register(modEventBus);
         ComponentRegistry.register(modEventBus);
 
-        if (ModList.get().isLoaded("ars_nouveau")) {
-            ArsNouveauCompat.init(modEventBus);
-        } else {
-            LOGGER.info("[Zauberei] Ars Nouveau not found, skipping compatibility setup.");
-        }
+        // Ars Nouveau compat is disabled until Ars Nouveau has a 26.x release (see build.gradle).
+        // if (net.neoforged.fml.ModList.get().isLoaded("ars_nouveau")) {
+        //     com.gilfort.zauberei.compat.ArsNouveauCompat.init(modEventBus);
+        // }
 
-        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        modContainer.registerConfig(ModConfig.Type.LOCAL, Config.SPEC);
     }
 
     /**
-     * Creates a {@link ResourceLocation} in the {@value #MODID} namespace.
+     * Creates an {@link Identifier} in the {@value #MODID} namespace.
      *
-     * @param path the path of the resource location
+     * @param path the path of the identifier
      * @return {@code zauberei:<path>}
      */
-    public static ResourceLocation id(@NotNull String path) {
-        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+    public static Identifier id(@NotNull String path) {
+        return Identifier.fromNamespaceAndPath(MODID, path);
     }
 }

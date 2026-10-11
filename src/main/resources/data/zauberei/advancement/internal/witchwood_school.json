@@ -3,10 +3,18 @@
     "spawn_location": {
       "trigger": "minecraft:location",
       "conditions": {
-        "position": {
-          "x": { "min": -5, "max": 5 },
-          "y": { "min": 248, "max": 255 },
-          "z": { "min": -5, "max": 5 }
+        "player": {
+          "type": "minecraft:entity_properties",
+          "entity": "this",
+          "predicate": {
+            "minecraft:location": {
+              "position": {
+                "x": { "min": -5, "max": 5 },
+                "y": { "min": 248, "max": 255 },
+                "z": { "min": -5, "max": 5 }
+              }
+            }
+          }
         }
       }
     }

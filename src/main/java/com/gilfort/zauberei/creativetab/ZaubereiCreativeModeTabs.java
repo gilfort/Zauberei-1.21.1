@@ -2,14 +2,12 @@ package com.gilfort.zauberei.creativetab;
 
 import com.gilfort.zauberei.Config;
 import com.gilfort.zauberei.Zauberei;
-import com.gilfort.zauberei.compat.ArsNouveauCompat;
 import com.gilfort.zauberei.item.ZaubereiItems;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -47,12 +45,13 @@ public class ZaubereiCreativeModeTabs {
                         output.accept(ZaubereiItems.MAGICCLOTH_LEGGINGS_ALT.get());
                         output.accept(ZaubereiItems.MAGICCLOTH_BOOTS_ALT.get());
 
-                        if (ModList.get().isLoaded("ars_nouveau")) {
-                            output.accept(ArsNouveauCompat.MAGICCLOTH_HELMET_ARS.get());
-                            output.accept(ArsNouveauCompat.MAGICCLOTH_CHESTPLATE_ARS.get());
-                            output.accept(ArsNouveauCompat.MAGICCLOTH_LEGGINGS_ARS.get());
-                            output.accept(ArsNouveauCompat.MAGICCLOTH_BOOTS_ARS.get());
-                        }
+                        // Ars Nouveau compat is disabled until Ars Nouveau has a 26.x release (see build.gradle).
+                        // if (ModList.get().isLoaded("ars_nouveau")) {
+                        //     output.accept(ArsNouveauCompat.MAGICCLOTH_HELMET_ARS.get());
+                        //     output.accept(ArsNouveauCompat.MAGICCLOTH_CHESTPLATE_ARS.get());
+                        //     output.accept(ArsNouveauCompat.MAGICCLOTH_LEGGINGS_ARS.get());
+                        //     output.accept(ArsNouveauCompat.MAGICCLOTH_BOOTS_ARS.get());
+                        // }
                     }).build());
 
     /**

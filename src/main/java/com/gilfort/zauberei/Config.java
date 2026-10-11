@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
- * Common (global) configuration of the mod, stored in {@code config/zauberei-common.toml}.
+ * Global configuration of the mod (per game instance, not synced), stored in {@code config/zauberei-local.toml}.
  * Display names of the options live in the lang file under {@code zauberei.configuration.<key>}.
  */
 public class Config {
@@ -48,7 +48,7 @@ public class Config {
                                 "zauberei:magiccloth_boots"
                         ),
                         () -> "zauberei:magiccloth",
-                        o -> o instanceof String s && ResourceLocation.tryParse(s) != null
+                        o -> o instanceof String s && Identifier.tryParse(s) != null
                 );
 
         LETTER_TEXT = BUILDER
@@ -83,12 +83,12 @@ public class Config {
     public static List<ItemStack> getLetterItems() {
         List<ItemStack> stacks = new ArrayList<>();
         for (String itemName : LETTER_ITEMS.get()) {
-            ResourceLocation id = ResourceLocation.tryParse(itemName);
+            Identifier id = Identifier.tryParse(itemName);
             if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
                 Zauberei.LOGGER.warn("[Zauberei] Unknown item '{}' in letter_items, skipped.", itemName);
                 continue;
             }
-            Item item = BuiltInRegistries.ITEM.get(id);
+            Item item = BuiltInRegistries.ITEM.getValue(id);
             stacks.add(new ItemStack(item));
         }
         return stacks;

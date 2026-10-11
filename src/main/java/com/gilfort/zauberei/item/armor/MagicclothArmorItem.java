@@ -1,25 +1,24 @@
 package com.gilfort.zauberei.item.armor;
 
-import com.gilfort.zauberei.entity.armor.magiccloth.MagicclothArmorModel;
-import com.gilfort.zauberei.entity.armor.magiccloth.MagicclothArmorRenderer;
-import com.gilfort.zauberei.item.ZaubereiItems;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import software.bernie.geckolib.renderer.GeoArmorRenderer;
+import com.geckolib.renderer.GeoArmorRenderer;
+import com.gilfort.zauberei.client.ClientHooks;
 
 /**
  * Magiccloth armor piece (school uniform), rendered with GeckoLib.
  */
 public class MagicclothArmorItem extends ExtendedArmorItem {
 
+    private final boolean alt;
+
     /**
      * Creates a Magiccloth armor piece.
      *
-     * @param slot     the armor type
-     * @param settings the item properties
+     * @param properties the item properties, including {@link Properties#humanoidArmor}
+     * @param alt        whether this is an alternative ({@code _alt}) piece with its own model and texture
      */
-    public MagicclothArmorItem(Type slot, Properties settings) {
-        super(ZaubereiArmorMaterials.MAGICCLOTH, slot, settings);
+    public MagicclothArmorItem(Properties properties, boolean alt) {
+        super(properties);
+        this.alt = alt;
     }
 
     /**
@@ -28,15 +27,12 @@ public class MagicclothArmorItem extends ExtendedArmorItem {
      * @return true for the alternative pieces
      */
     public boolean isAlt() {
-        return this == ZaubereiItems.MAGICCLOTH_HELMET_ALT.get()
-                || this == ZaubereiItems.MAGICCLOTH_CHESTPLATE_ALT.get()
-                || this == ZaubereiItems.MAGICCLOTH_LEGGINGS_ALT.get()
-                || this == ZaubereiItems.MAGICCLOTH_BOOTS_ALT.get();
+        return this.alt;
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
-    public GeoArmorRenderer<?> supplyRenderer() {
-        return new MagicclothArmorRenderer(new MagicclothArmorModel());
+    protected GeoArmorRenderer<?, ?> createArmorRenderer() {
+        // Goes through ClientHooks so the renderer class is never resolved on a dedicated server.
+        return ClientHooks.createMagicclothArmorRenderer();
     }
 }

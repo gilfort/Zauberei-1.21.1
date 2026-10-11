@@ -6,11 +6,12 @@ binding reference for them.
 
 ## Target
 
-- Minecraft **1.21.1**, NeoForge 21.1.x (`gradle.properties` → `neo_version`), Java **21**
-- Mod id `zauberei`, base package `com.gilfort.zauberei`, Mojang mappings with Parchment
-  (`ResourceLocation`; create ids with `Zauberei.id(path)`)
-- Dependencies: GeckoLib (required), Ars Nouveau (optional — Ars classes are only touched from `compat/`
-  behind `ModList.get().isLoaded("ars_nouveau")`)
+- Minecraft **26.3**, NeoForge 26.3.x (`gradle.properties` → `neo_version`), Java **25** (auto-provisioned toolchain)
+- Mod id `zauberei`, base package `com.gilfort.zauberei`, Mojang official names
+  (`Identifier`, not `ResourceLocation`; create ids with `Zauberei.id(path)`)
+- Dependencies: GeckoLib 5 (required, maven group `com.geckolib`), Ars Nouveau (optional — Ars classes are only
+  touched from `compat/` behind `ModList.get().isLoaded("ars_nouveau")`; currently excluded from compilation
+  because Ars Nouveau has no 26.x release)
 - Each registry gets its own class with a `register(IEventBus)` method, wired in the `Zauberei` constructor.
 - Client-only code lives in `client/` and is reached from common code only through `client/ClientHooks`
   behind a client-side check.
@@ -29,7 +30,9 @@ binding reference for them.
 5. Content (structures, tags, loot, recipes) is **datapack only**; the TOML config holds global options only.
 6. **Never remove a persistent registry entry** (data component, attachment, item) that may be stored in
    existing worlds — keep it registered as legacy (`@Deprecated`, documented) or migrate the data first.
-7. `@EventBusSubscriber` without `bus`: FML (4.0.41+) routes mod bus events automatically; `bus` is deprecated.
+7. `@EventBusSubscriber` without `bus`: FML routes mod bus events automatically.
+8. Client-only classes (renderers, screens) are reached from common code only through `client/ClientHooks`, so
+   a dedicated server never resolves them.
 
 ## Workflow
 
@@ -65,8 +68,10 @@ Cloud sessions (claude.ai/code, auto-created `ccr-*` branches) follow the **same
 ## Tests
 
 - GameTests belong in a `src/gametest` source set (never part of the jar) and run with
-  `./gradlew runGameTestServer`. The source set does not exist yet — the first story that adds testable server
-  logic sets it up. Until then, manual checks in `docs/TESTING.md` cover each change.
+  `./gradlew runGameTestServer` (see Architect's Trials for the setup). The source set does not exist yet — the
+  first story that adds testable server logic sets it up. Until then, manual checks in `docs/TESTING.md` cover
+  each change.
+- Dev runs use their own game directories under `runs/<run name>` (gitignored).
 - A story PR needs a green build.
 
 ## Commands

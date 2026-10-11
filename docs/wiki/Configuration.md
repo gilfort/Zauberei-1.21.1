@@ -1,6 +1,6 @@
 # Configuration
 
-File: `config/zauberei-common.toml`
+File: `config/zauberei-local.toml` (per game instance, not synced between server and client)
 
 | Key | Default | Description |
 |---|---|---|

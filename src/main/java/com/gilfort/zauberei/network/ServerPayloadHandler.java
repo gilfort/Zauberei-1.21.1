@@ -34,7 +34,7 @@ public class ServerPayloadHandler {
             hand = InteractionHand.OFF_HAND;
         } else {
             Zauberei.LOGGER.warn("[Zauberei] {} sent a letter payload without holding an Introduction Letter.",
-                    player.getGameProfile().getName());
+                    player.getPlainTextName());
             return;
         }
         player.setItemInHand(hand, ItemStack.EMPTY);

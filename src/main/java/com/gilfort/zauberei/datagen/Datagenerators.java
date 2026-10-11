@@ -1,7 +1,6 @@
 package com.gilfort.zauberei.datagen;
 
 import com.gilfort.zauberei.Zauberei;
-import net.minecraft.data.DataGenerator;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
@@ -14,14 +13,12 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 public class Datagenerators {
 
     /**
-     * Adds the data providers to the generator.
+     * Adds the client data providers (item models and client item definitions).
      *
-     * @param event the gather data event
+     * @param event the client gather data event
      */
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event) {
-        DataGenerator generator = event.getGenerator();
-        generator.addProvider(event.includeClient(),
-                new ZaubereiItemModelProvider(generator.getPackOutput(), event.getExistingFileHelper()));
+    public static void gatherClientData(GatherDataEvent.Client event) {
+        event.createProvider(ZaubereiModelProvider::new);
     }
 }

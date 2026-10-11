@@ -3,7 +3,7 @@ package com.gilfort.zauberei.structure;
 import com.gilfort.zauberei.Config;
 import com.gilfort.zauberei.Zauberei;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Mirror;
@@ -24,7 +24,7 @@ import java.util.Optional;
 public class SchoolSpawner {
 
     /** Template id of the school ({@code data/zauberei/structure/witchwood_school.nbt}). */
-    public static final ResourceLocation TEMPLATE = Zauberei.id("witchwood_school");
+    public static final Identifier TEMPLATE = Zauberei.id("witchwood_school");
 
     /** Corner position the template is placed at; the school is centered around x/z 0. */
     private static final BlockPos ORIGIN = new BlockPos(-16, 244, -23);
@@ -53,7 +53,7 @@ public class SchoolSpawner {
      * @return true if the template was found and placed
      */
     public static boolean place(ServerLevel level, BlockPos pos) {
-        Optional<StructureTemplate> template = level.getStructureManager().get(TEMPLATE);
+        Optional<StructureTemplate> template = level.getStructureTemplateManager().get(TEMPLATE);
         if (template.isEmpty()) {
             Zauberei.LOGGER.warn("[Zauberei] Structure template not found: {}", TEMPLATE);
             return false;

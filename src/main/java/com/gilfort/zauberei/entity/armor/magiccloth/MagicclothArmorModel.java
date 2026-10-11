@@ -12,12 +12,14 @@ import net.minecraft.resources.Identifier;
  */
 public class MagicclothArmorModel extends GeoModel<MagicclothArmorItem> {
 
-    private static final Identifier MODEL = Zauberei.id("geo/magiccloth_armor.geo.json");
-    private static final Identifier MODEL_ALT = Zauberei.id("geo/magiccloth_armor_alt.geo.json");
+    // GeckoLib 5 ids: relative to assets/zauberei/geckolib/models|animations/, without the file suffix.
+    private static final Identifier MODEL = Zauberei.id("armor/magiccloth");
+    private static final Identifier MODEL_ALT = Zauberei.id("armor/magiccloth_alt");
+    private static final Identifier ANIMATION = Zauberei.id("armor/magiccloth");
+    private static final Identifier ANIMATION_ALT = Zauberei.id("armor/magiccloth_alt");
+    // Textures are full resource paths.
     private static final Identifier TEXTURE = Zauberei.id("textures/models/armor/magiccloth.png");
     private static final Identifier TEXTURE_ALT = Zauberei.id("textures/models/armor/magiccloth_alt.png");
-    private static final Identifier ANIMATION = Zauberei.id("animations/magiccloth_armor_animation.json");
-    private static final Identifier ANIMATION_ALT = Zauberei.id("animations/magiccloth_armor_animation_alt.json");
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {
